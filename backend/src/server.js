@@ -1,6 +1,5 @@
 require("dotenv").config();
 const express = require("express");
-const serverless = require("serverless-http");
 const cors = require("cors");
 const connectDB = require("./config/db");
 
@@ -19,4 +18,5 @@ app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/user", userRoutes);
 
-module.exports = serverless(app);
+
+module.exports = app;
