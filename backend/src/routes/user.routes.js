@@ -4,7 +4,7 @@ const router = express.Router();
 const { protect } = require("../middlewares/auth.middleware");
 const User = require("../models/user.model");
 
-// تحديث التقدم
+
 router.put("/progress", protect, async (req, res) => {
   try {
     const { progress } = req.body;

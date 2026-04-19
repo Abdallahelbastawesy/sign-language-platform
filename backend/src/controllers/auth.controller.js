@@ -7,7 +7,7 @@ const {
   sendResetPasswordEmail,
 } = require("../services/email.service");
 
-// REGISTER
+
 exports.register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -34,7 +34,7 @@ exports.register = async (req, res) => {
   }
 };
 
-// LOGIN
+
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -72,7 +72,7 @@ exports.login = async (req, res) => {
   }
 };
 
-// VERIFY EMAIL
+
 exports.verifyEmail = async (req, res) => {
   try {
     const user = await User.findOne({ verificationToken: req.params.token });
@@ -88,7 +88,7 @@ exports.verifyEmail = async (req, res) => {
   }
 };
 
-// FORGOT PASSWORD
+
 exports.forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -109,7 +109,7 @@ exports.forgotPassword = async (req, res) => {
   }
 };
 
-// RESET PASSWORD
+
 exports.resetPassword = async (req, res) => {
   try {
     const { token } = req.params;
