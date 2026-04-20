@@ -38,8 +38,10 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
+
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ message: "Invalid credentials" });
+
     if (!user.isEmailVerified)
       return res
         .status(401)
@@ -49,29 +51,31 @@ exports.login = async (req, res) => {
     if (!isMatch)
       return res.status(400).json({ message: "Invalid credentials" });
 
-    const token = jwt.sign(
+    const accessToken = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "7d" },
     );
+
     const refreshToken = jwt.sign(
       { id: user._id },
       process.env.REFRESH_SECRET,
       { expiresIn: "7d" },
     );
-    res.json({
+
+    return res.json({
       accessToken,
       refreshToken,
-    });
-    res.json({
-      token,
-      user: { id: user._id, name: user.name, role: user.role },
+      user: {
+        id: user._id,
+        name: user.name,
+        role: user.role,
+      },
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
-
 
 exports.verifyEmail = async (req, res) => {
   try {
