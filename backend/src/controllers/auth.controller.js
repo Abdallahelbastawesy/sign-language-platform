@@ -24,7 +24,7 @@ exports.register = async (req, res) => {
       password: hashedPassword,
       verificationToken,
     });
-    await sendVerificationEmail(email, verificationToken);
+    // await sendVerificationEmail(email, verificationToken);
 
     res
       .status(201)
