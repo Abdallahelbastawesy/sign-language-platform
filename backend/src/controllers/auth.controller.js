@@ -43,9 +43,9 @@ exports.login = async (req, res) => {
     if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
     //if (!user.isEmailVerified)
-      return res
-        .status(401)
-        .json({ message: "Please verify your email first" });
+     // return res
+       // .status(401)
+       // .json({ message: "Please verify your email first" });
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch)
