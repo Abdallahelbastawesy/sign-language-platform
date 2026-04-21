@@ -4,10 +4,39 @@ const authController = require("../controllers/auth.controller");
 
 /**
  * @swagger
+ * tags:
+ *   name: Auth
+ *   description: Authentication APIs
+ */
+
+/**
+ * @swagger
  * /api/auth/register:
  *   post:
  *     summary: Register new user
  *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [name, email, password]
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: Abdallah
+ *               email:
+ *                 type: string
+ *                 example: test@gmail.com
+ *               password:
+ *                 type: string
+ *                 example: 123456
+ *     responses:
+ *       201:
+ *         description: User registered successfully
+ *       400:
+ *         description: Email already exists
  */
 router.post("/register", authController.register);
 
@@ -17,6 +46,27 @@ router.post("/register", authController.register);
  *   post:
  *     summary: Login user
  *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: test@gmail.com
+ *               password:
+ *                 type: string
+ *                 example: 123456
+ *     responses:
+ *       200:
+ *         description: Login success
+ *       400:
+ *         description: Invalid credentials
+ *       401:
+ *         description: Email not verified
  */
 router.post("/login", authController.login);
 
@@ -26,6 +76,18 @@ router.post("/login", authController.login);
  *   post:
  *     summary: Login with Google
  *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               token:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Google login success
  */
 router.post("/google", authController.googleLogin);
 
@@ -35,6 +97,20 @@ router.post("/google", authController.googleLogin);
  *   post:
  *     summary: Refresh access token
  *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: New access token generated
+ *       401:
+ *         description: Invalid refresh token
  */
 router.post("/refresh", authController.refreshToken);
 
@@ -42,7 +118,7 @@ router.post("/refresh", authController.refreshToken);
  * @swagger
  * /api/auth/verify-email/{token}:
  *   get:
- *     summary: Verify user email
+ *     summary: Verify email
  *     tags: [Auth]
  *     parameters:
  *       - in: path
@@ -50,6 +126,11 @@ router.post("/refresh", authController.refreshToken);
  *         required: true
  *         schema:
  *           type: string
+ *     responses:
+ *       200:
+ *         description: Email verified
+ *       400:
+ *         description: Invalid token
  */
 router.get("/verify-email/:token", authController.verifyEmail);
 
@@ -59,6 +140,21 @@ router.get("/verify-email/:token", authController.verifyEmail);
  *   post:
  *     summary: Send reset password email
  *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: test@gmail.com
+ *     responses:
+ *       200:
+ *         description: Reset email sent
+ *       404:
+ *         description: User not found
  */
 router.post("/forgotpassword", authController.forgotPassword);
 
@@ -74,6 +170,21 @@ router.post("/forgotpassword", authController.forgotPassword);
  *         required: true
  *         schema:
  *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               newPassword:
+ *                 type: string
+ *                 example: 123456
+ *     responses:
+ *       200:
+ *         description: Password updated
+ *       400:
+ *         description: Invalid or expired token
  */
 router.post("/reset-password/:token", authController.resetPassword);
 
