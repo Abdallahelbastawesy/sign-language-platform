@@ -24,7 +24,7 @@ exports.register = async (req, res) => {
       password: hashedPassword,
       verificationToken,
     });
-    // await sendVerificationEmail(email, verificationToken);
+    await sendVerificationEmail(email, verificationToken);
 
     res
       .status(201)
@@ -42,10 +42,10 @@ exports.login = async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
-    //if (!user.isEmailVerified)
-     // return res
-       // .status(401)
-       // .json({ message: "Please verify your email first" });
+    if (!user.isEmailVerified)
+      return res
+        .status(401)
+        .json({ message: "Please verify your email first" });
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch)
