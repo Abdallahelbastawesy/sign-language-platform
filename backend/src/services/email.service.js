@@ -1,18 +1,32 @@
 const nodemailer = require("nodemailer");
+const dns = require("dns");
+
+// 🔥 مهم جدًا: إجبار IPv4 بدل IPv6 (بيحل ENETUNREACH)
+dns.setDefaultResultOrder("ipv4first");
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false, // مهم مع 587
   auth: {
     user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    pass: process.env.EMAIL_PASS, // لازم App Password
+  },
+  tls: {
+    rejectUnauthorized: false,
   },
 });
 
 exports.sendVerificationEmail = async (email, token) => {
   const verificationLink = `${process.env.BASE_URL}/api/auth/verify-email/${token}`;
 
-  const html = `<h3>Verify Email</h3>
-                <a href="${verificationLink}">Verify</a>`;
+  const html = `
+    <div>
+      <h3>Verify Email</h3>
+      <p>Click the link below to verify your account:</p>
+      <a href="${verificationLink}">Verify Email</a>
+    </div>
+  `;
 
   try {
     console.log("📧 Sending email to:", email);
@@ -28,6 +42,10 @@ exports.sendVerificationEmail = async (email, token) => {
 
     console.log("✅ Email sent:", info.response);
   } catch (err) {
-    console.log("❌ EMAIL ERROR FULL:", err);
+    console.error("❌ EMAIL ERROR:", {
+      message: err.message,
+      code: err.code,
+      command: err.command,
+    });
   }
 };
