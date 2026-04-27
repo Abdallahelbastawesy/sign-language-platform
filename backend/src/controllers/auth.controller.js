@@ -8,12 +8,16 @@ const {
   sendResetPasswordEmail,
 } = require("../services/email.service");
 
+const { OAuth2Client } = require("google-auth-library");
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
 // ================= REGISTER =================
 exports.register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    if (await User.findOne({ email })) {
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
       return res.status(400).json({ message: "Email already exists" });
     }
 
@@ -26,14 +30,16 @@ exports.register = async (req, res) => {
       password: hashedPassword,
       verificationToken,
       isEmailVerified: false,
+      role: "user",
     });
 
-    // 🔥 إرسال الإيميل في الخلفية (بدون await)
-    sendVerificationEmail(email, verificationToken)
-      .then(() => console.log("✅ Verification email sent to:", email))
-      .catch((err) => console.log("❌ Email sending failed:", err.message));
+    try {
+      await sendVerificationEmail(email, verificationToken);
+      console.log("✅ Verification email sent");
+    } catch (err) {
+      console.log("❌ Email failed:", err.message);
+    }
 
-    // ⚡ الرد فورًا
     res.status(201).json({
       message: "User registered. Please verify your email",
     });
@@ -64,13 +70,13 @@ exports.login = async (req, res) => {
     const accessToken = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" },
+      { expiresIn: "15d" },
     );
 
     const refreshToken = jwt.sign(
       { id: user._id },
       process.env.REFRESH_SECRET,
-      { expiresIn: "7d" },
+      { expiresIn: "30d" },
     );
 
     res.json({
@@ -96,11 +102,16 @@ exports.verifyEmail = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(400).json({ message: "Invalid token" });
+      return res.status(400).json({ message: "Invalid or expired token" });
+    }
+
+    if (user.isEmailVerified) {
+      return res.status(400).json({ message: "Already verified" });
     }
 
     user.isEmailVerified = true;
-    user.verificationToken = undefined;
+    user.verificationToken = null;
+
     await user.save();
 
     res.send("✅ Email verified successfully. You can login now.");
@@ -125,12 +136,12 @@ exports.forgotPassword = async (req, res) => {
 
     await user.save();
 
-    const resetLink = `${process.env.BASE_URL}/api/auth/reset-password/${resetToken}`;
-
-    // إرسال الإيميل في الخلفية
-    sendResetPasswordEmail(email, resetLink)
-      .then(() => console.log("✅ Reset email sent"))
-      .catch((err) => console.log("❌ Reset email error:", err.message));
+    try {
+      await sendResetPasswordEmail(email, resetToken);
+      console.log("✅ Reset email sent");
+    } catch (err) {
+      console.log("❌ Reset email failed:", err.message);
+    }
 
     res.json({ message: "Reset password email sent" });
   } catch (error) {
@@ -150,12 +161,13 @@ exports.resetPassword = async (req, res) => {
       resetPasswordExpire: { $gt: Date.now() },
     });
 
-    if (!user)
+    if (!user) {
       return res.status(400).json({ message: "Invalid or expired token" });
+    }
 
     user.password = await bcrypt.hash(newPassword, 10);
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpire = undefined;
+    user.resetPasswordToken = null;
+    user.resetPasswordExpire = null;
 
     await user.save();
 
@@ -167,9 +179,6 @@ exports.resetPassword = async (req, res) => {
 };
 
 // ================= GOOGLE LOGIN =================
-const { OAuth2Client } = require("google-auth-library");
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-
 exports.googleLogin = async (req, res) => {
   try {
     const { token } = req.body;
@@ -189,12 +198,15 @@ exports.googleLogin = async (req, res) => {
         email: payload.email,
         googleId: payload.sub,
         isEmailVerified: true,
+        role: "user",
       });
     }
 
-    const jwtToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
-    });
+    const jwtToken = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" },
+    );
 
     res.json({
       token: jwtToken,
