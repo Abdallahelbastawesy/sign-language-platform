@@ -7,7 +7,6 @@ const {
   sendResetPasswordEmail,
 } = require("../services/email.service");
 
-
 exports.register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -33,7 +32,6 @@ exports.register = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
 
 exports.login = async (req, res) => {
   try {
@@ -92,7 +90,6 @@ exports.verifyEmail = async (req, res) => {
   }
 };
 
-
 exports.forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -112,7 +109,6 @@ exports.forgotPassword = async (req, res) => {
     res.status(500).json({ message: "Email could not be sent" });
   }
 };
-
 
 exports.resetPassword = async (req, res) => {
   try {
