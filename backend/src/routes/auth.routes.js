@@ -156,7 +156,7 @@ router.get("/verify-email/:token", authController.verifyEmail);
  *       404:
  *         description: User not found
  */
-router.post("/forgotpassword", authController.forgotPassword);
+router.post("/forgot-password", authController.forgotPassword);
 
 /**
  * @swagger

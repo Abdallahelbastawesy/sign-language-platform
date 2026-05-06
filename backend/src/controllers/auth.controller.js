@@ -137,7 +137,7 @@ exports.forgotPassword = async (req, res) => {
     await user.save();
 
     try {
-      await sendResetPasswordEmail(email, resetToken);
+      await sendResetPasswordEmail(email, resetToken); // ✔ صح
       console.log("✅ Reset email sent");
     } catch (err) {
       console.log("❌ Reset email failed:", err.message);

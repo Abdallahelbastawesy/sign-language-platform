@@ -7,7 +7,7 @@ const swaggerJsdoc = require("swagger-jsdoc");
 const authRoutes = require("./src/routes/auth.routes");
 const adminRoutes = require("./src/routes/admin.routes");
 const userRoutes = require("./src/routes/user.routes");
-
+const signRoutes = require("./src/routes/sign.routes");
 const app = express();
 
 app.use(cors());
@@ -37,5 +37,5 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/user", userRoutes);
-
+app.use("/api/sign", signRoutes);
 module.exports = app;
