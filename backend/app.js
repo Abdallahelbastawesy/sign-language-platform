@@ -10,7 +10,7 @@ const authRoutes = require("./src/routes/auth.routes");
 const adminRoutes = require("./src/routes/admin.routes");
 const userRoutes = require("./src/routes/user.routes");
 const signRoutes = require("./src/routes/sign.routes");
-const aiRouter = require("./src/routes/ai");
+const aiRouter = require("./src/routes/ai.routes");
 
 const app = express();
 
