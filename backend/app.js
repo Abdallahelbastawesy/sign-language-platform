@@ -42,12 +42,12 @@ app.get("/docs", (req, res) => {
   <script>
     window.onload = function() {
       SwaggerUIBundle({
-        url: "https://sign-language-platform-cd91.vercel.app/api-docs/json",
-        dom_id: '#swagger-ui',
-        deepLinking: true,
-        presets: [SwaggerUIBundle.presets.apis, SwaggerUIBundle.SwaggerUIStandalonePreset],
-        layout: "StandaloneLayout"
-      });
+  url: "https://sign-language-platform.vercel.app/api-docs/json",
+  dom_id: '#swagger-ui',
+  deepLinking: true,
+  presets: [SwaggerUIBundle.presets.apis],
+  layout: "BaseLayout"
+});
     };
   </script>
 </body>
