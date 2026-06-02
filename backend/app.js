@@ -21,7 +21,7 @@ const options = {
     info: { title: "Sign Language API", version: "1.0.0" },
     servers: [{ url: process.env.BASE_URL || "http://localhost:5000" }],
   },
-  apis: ["./src/routes/*.js"],
+  apis: ["./backend/src/routes/*.js"],
 };
 const specs = swaggerJsdoc(options);
 
