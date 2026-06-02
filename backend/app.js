@@ -22,11 +22,18 @@ app.use(express.json());
 const options = {
   definition: {
     openapi: "3.0.0",
-    info: { title: "Sign Language API", version: "1.0.0" },
+    info: {
+      title: "Sign Language API",
+      version: "1.0.0",
+    },
+    servers: [
+      {
+        url: process.env.BASE_URL || "http://localhost:5000",
+      },
+    ],
   },
   apis: ["./src/routes/*.js"],
 };
-const specs = swaggerJsdoc(options);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 
 // DB
