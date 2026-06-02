@@ -14,7 +14,7 @@ const aiRouter = require("./src/routes/ai.routes");
 
 const app = express();
 
-// Middleware أولاً
+// Middleware
 app.use(cors());
 app.use(express.json());
 
@@ -22,31 +22,39 @@ app.use(express.json());
 const options = {
   definition: {
     openapi: "3.0.0",
-    info: {
-      title: "Sign Language API",
-      version: "1.0.0",
-    },
-    servers: [
-      {
-        url: process.env.BASE_URL || "http://localhost:5000",
-      },
-    ],
+    info: { title: "Sign Language API", version: "1.0.0" },
+    servers: [{ url: process.env.BASE_URL || "http://localhost:5000" }],
   },
   apis: ["./src/routes/*.js"],
 };
 const specs = swaggerJsdoc(options);
-app.use(
-  "/api-docs",
-  swaggerUi.serve,
-  swaggerUi.setup(specs, {
-    customCssUrl:
-      "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui.min.css",
-    customJs: [
-      "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-bundle.min.js",
-      "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-standalone-preset.min.js",
-    ],
-  }),
-);
+
+app.get("/api-docs/json", (req, res) => res.json(specs));
+
+app.get("/docs", (req, res) => {
+  res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sign Language API Docs</title>
+  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist/swagger-ui.css">
+</head>
+<body>
+  <div id="swagger-ui"></div>
+  <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
+  <script>
+    SwaggerUIBundle({
+      url: "/api-docs/json",
+      dom_id: '#swagger-ui',
+      presets: [SwaggerUIBundle.presets.apis, SwaggerUIBundle.SwaggerUIStandalonePreset],
+      layout: "StandaloneLayout"
+    })
+  </script>
+</body>
+</html>
+  `);
+});
+
 // DB
 connectDB();
 
@@ -62,10 +70,3 @@ const upload = multer({ storage: multer.memoryStorage() });
 app.use("/api/ai", upload.single("file"), aiRouter);
 
 module.exports = app;
-app.get("/api-docs/json", (req, res) => {
-  res.json(specs);
-});
-
-app.get("/docs", (req, res) => {
-  res.sendFile(__dirname + "/swagger.html");
-});
