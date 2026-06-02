@@ -62,3 +62,10 @@ const upload = multer({ storage: multer.memoryStorage() });
 app.use("/api/ai", upload.single("file"), aiRouter);
 
 module.exports = app;
+app.get("/api-docs/json", (req, res) => {
+  res.json(specs);
+});
+
+app.get("/docs", (req, res) => {
+  res.sendFile(__dirname + "/swagger.html");
+});
