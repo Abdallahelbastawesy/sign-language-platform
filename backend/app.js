@@ -2,13 +2,12 @@ const express = require("express");
 const cors = require("cors");
 const connectDB = require("./src/config/db");
 const swaggerJsdoc = require("swagger-jsdoc");
-const multer = require("multer");
+
 
 const authRoutes = require("./src/routes/auth.routes");
 const adminRoutes = require("./src/routes/admin.routes");
 const userRoutes = require("./src/routes/user.routes");
 const signRoutes = require("./src/routes/sign.routes");
-const aiRouter = require("./src/routes/ai.routes");
 
 const app = express();
 
@@ -62,7 +61,6 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/sign", signRoutes);
 
-const upload = multer({ storage: multer.memoryStorage() });
-app.use("/api/ai", upload.single("file"), aiRouter);
+
 
 module.exports = app;
