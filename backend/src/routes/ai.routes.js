@@ -238,4 +238,64 @@ router.post("/verify-sign", async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/ai/predict-voice:
+ *   post:
+ *     summary: Voice Translation Model - transcribe Arabic speech audio file to text
+ *     tags: [AI]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required: [file]
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Transcribed text
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 text:
+ *                   type: string
+ *                   example: مرحبا بكم في تطبيق عبر
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *       400:
+ *         description: No file uploaded
+ *       500:
+ *         description: AI service error
+ */
+router.post("/predict-voice", upload.single("file"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    const form = new FormData();
+    form.append("file", req.file.buffer, {
+      filename: req.file.originalname,
+      contentType: req.file.mimetype,
+    });
+
+    const response = await axios.post(
+      `${process.env.AI_BASE_URL}/predict-voice`,
+      form,
+      { headers: form.getHeaders() }
+    );
+    res.json(response.data);
+  } catch (error) {
+    console.error("AI Predict-Voice Error:", error.message);
+    res.status(500).json({ error: "AI voice service failed" });
+  }
+});
+
 module.exports = router;

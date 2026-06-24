@@ -1,0 +1,599 @@
+{
+  "info": {
+    "_postman_id": "7b8f9e6a-c5d4-4f3b-a2e1-8c0d9e8f7a6b",
+    "name": "Sign Language Platform API",
+    "description": "API collection for the Graduation Project - Sign Language AI Platform. Contains endpoints for Authentication, AI Models (Predict, Image, Chat, Verify), User Progress, and Admin actions.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "description": "API endpoints related to user authentication, registration, password recovery, and email verification.",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Abdallah\",\n  \"email\": \"test@gmail.com\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Registers a new user on the platform. Returns a success message. The user will receive a verification email."
+          },
+          "response": []
+        },
+        {
+          "name": "Login User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const responseJson = pm.response.json();",
+                  "if (responseJson.token) {",
+                  "    pm.environment.set(\"accessToken\", responseJson.token);",
+                  "}",
+                  "if (responseJson.refreshToken) {",
+                  "    pm.environment.set(\"refreshToken\", responseJson.refreshToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@gmail.com\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Logs in a user. Returns a JWT access token and a refresh token. Updates the environment variable automatically."
+          },
+          "response": []
+        },
+        {
+          "name": "Google Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"YOUR_GOOGLE_ID_TOKEN\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/google",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "google"
+              ]
+            },
+            "description": "Authenticates a user via Google OAuth using their Google ID token."
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Access Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const responseJson = pm.response.json();",
+                  "if (responseJson.accessToken) {",
+                  "    pm.environment.set(\"accessToken\", responseJson.accessToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "refresh"
+              ]
+            },
+            "description": "Generates a new short-lived JWT access token using the long-lived refresh token."
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Email",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/verify-email/:token",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "verify-email",
+                ":token"
+              ],
+              "variable": [
+                {
+                  "key": "token",
+                  "value": "EMAIL_VERIFICATION_TOKEN_FROM_INBOX"
+                }
+              ]
+            },
+            "description": "Verifies a user's email address using the token received in their signup verification email."
+          },
+          "response": []
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@gmail.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/forgot-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "forgot-password"
+              ]
+            },
+            "description": "Sends a password reset link to the specified email address if it exists."
+          },
+          "response": []
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newPassword\": \"newpassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/reset-password/:token",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "reset-password",
+                ":token"
+              ],
+              "variable": [
+                {
+                  "key": "token",
+                  "value": "RESET_TOKEN_FROM_EMAIL"
+                }
+              ]
+            },
+            "description": "Resets the user's password using the token sent to their email."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "AI Endpoints",
+      "description": "API endpoints related to AI model predictions, image-based signs, chatbot responses, and sign verification.",
+      "item": [
+        {
+          "name": "Arabic Chatbot",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"ما هو الهدف من تطبيق عبر؟\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ai/chat",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ai",
+                "chat"
+              ]
+            },
+            "description": "Sends a message in Arabic to the AI chatbot, which answers user questions about the app."
+          },
+          "response": []
+        },
+        {
+          "name": "Predict Sign (Video Keypoints)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"frames\": [\n    [0.1, 0.2, -0.05, 0.0, 0.0], \n    [0.11, 0.21, -0.04, 0.0, 0.0]\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ai/predict",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ai",
+                "predict"
+              ]
+            },
+            "description": "Submits a sequence of frames (keypoints extracted from camera video) to recognize a sign word. Requires exactly 30 frames, each with 126 keypoints (total elements array = 30x126)."
+          },
+          "response": []
+        },
+        {
+          "name": "Predict Sign (Image File)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "description": "Image file containing a static sign (alphabet sign)",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ai/predict-image",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ai",
+                "predict-image"
+              ]
+            },
+            "description": "Uploads an image file to predict a static sign (e.g. sign language alphabet or simple static gesture)."
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Sign (Keypoints)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"expected_word\": \"شكرا\",\n  \"frames\": [\n    [0.1, 0.2, -0.05, 0.0, 0.0], \n    [0.11, 0.21, -0.04, 0.0, 0.0]\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ai/verify-sign",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ai",
+                "verify-sign"
+              ]
+            },
+            "description": "Compares a performed sign's keypoint sequence (30 frames × 126 values) against an expected word. Returns a boolean indicating if they match, along with the recognized label and confidence."
+          },
+          "response": []
+        },
+        {
+          "name": "Predict Sign (Voice File)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "description": "Audio file (wav, mp3, m4a) containing user speech to transcribe to Arabic text",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ai/predict-voice",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ai",
+                "predict-voice"
+              ]
+            },
+            "description": "Uploads an audio file (wav, mp3, m4a) containing spoken Arabic, transcribes it to Arabic text using speech recognition, and returns it."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "User Endpoints",
+      "description": "Endpoints accessible by authenticated users.",
+      "item": [
+        {
+          "name": "Update Progress",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"progress\": {\n    \"currentLesson\": 3,\n    \"completedLessons\": [1, 2],\n    \"score\": 85\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/progress",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "user",
+                "progress"
+              ]
+            },
+            "description": "Updates the logged-in user's course progress. Requires Bearer Token authorization header."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin Endpoints",
+      "description": "Administrative endpoints restricted to admin roles.",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users"
+              ]
+            },
+            "description": "Retrieves details of all users registered on the platform. Restricted to admins."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/user/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "user",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "USER_ID_TO_DELETE"
+                }
+              ]
+            },
+            "description": "Deletes a user account by ID. Restricted to admins."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Legacy Endpoints",
+      "description": "Older endpoints preserved for backwards compatibility.",
+      "item": [
+        {
+          "name": "Predict Sign (Old Endpoint)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"frames\": [\n    [0.1, 0.2, -0.05, 0.0, 0.0], \n    [0.11, 0.21, -0.04, 0.0, 0.0]\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/sign",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "sign"
+              ]
+            },
+            "description": "Legacy endpoint pointing to the old sign prediction route."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://sign-language-platform.vercel.app",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "your_access_token_here",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "your_refresh_token_here",
+      "type": "string"
+    }
+  ]
+}
