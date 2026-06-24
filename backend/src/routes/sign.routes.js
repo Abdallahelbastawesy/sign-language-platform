@@ -6,7 +6,7 @@ router.post("/", async (req, res) => {
   try {
     const { frames } = req.body;
 
-    const response = await axios.post("http://localhost:8000/predict", {
+    const response = await axios.post(`${process.env.AI_BASE_URL}/predict`, {
       frames,
     });
 

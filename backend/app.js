@@ -8,11 +8,13 @@ const authRoutes = require("./src/routes/auth.routes");
 const adminRoutes = require("./src/routes/admin.routes");
 const userRoutes = require("./src/routes/user.routes");
 const signRoutes = require("./src/routes/sign.routes");
+const aiRoutes = require("./src/routes/ai.routes");
 
 const app = express();
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 const options = {
   definition: {
@@ -60,6 +62,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/sign", signRoutes);
+app.use("/api/ai", aiRoutes);
 
 
 
