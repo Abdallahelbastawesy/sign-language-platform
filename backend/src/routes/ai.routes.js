@@ -6,7 +6,10 @@ const router = express.Router();
 
 const upload = multer({ storage: multer.memoryStorage() });
 
-const AI_BASE_URL = process.env.AI_BASE_URL || "https://abdallahessam29-sign-language-ai.hf.space";
+let AI_BASE_URL = "https://abdallahessam29-sign-language-ai.hf.space";
+if (process.env.AI_BASE_URL && !process.env.AI_BASE_URL.includes("railway.app")) {
+  AI_BASE_URL = process.env.AI_BASE_URL;
+}
 
 
 /**
