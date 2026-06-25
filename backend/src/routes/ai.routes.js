@@ -8,7 +8,6 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 const AI_BASE_URL = "https://abdallahessam29-sign-language-ai.hf.space";
 
-
 /**
  * @swagger
  * tags:
@@ -18,29 +17,23 @@ const AI_BASE_URL = "https://abdallahessam29-sign-language-ai.hf.space";
 
 /**
  * @swagger
- * /api/ai/predict:
+ * /api/ai/predict-video:
  *   post:
- *     summary: Video Sign Model - predict word from 30 frames
+ *     summary: رفع فيديو مباشر - يتوقع الكلمة من الفيديو
  *     tags: [AI]
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
- *             required: [frames]
  *             properties:
- *               frames:
- *                 type: array
- *                 description: Array of 30 frames, each with 126 keypoints
- *                 items:
- *                   type: array
- *                   items:
- *                     type: number
- *                 example: [[0.1, 0.0, 0.05]]
+ *               file:
+ *                 type: string
+ *                 format: binary
  *     responses:
  *       200:
- *         description: Prediction result
+ *         description: النتيجة
  *         content:
  *           application/json:
  *             schema:
@@ -49,28 +42,31 @@ const AI_BASE_URL = "https://abdallahessam29-sign-language-ai.hf.space";
  *                 label:
  *                   type: string
  *                   example: شكرا
- *                 raw_label:
- *                   type: string
- *                   example: شكرا
  *                 confidence:
  *                   type: number
  *                   example: 0.89
- *       500:
- *         description: AI service error
+ *                 frames_used:
+ *                   type: integer
+ *                   example: 30
  */
-router.post("/predict", async (req, res) => {
+router.post("/predict-video", async (req, res) => {
   try {
+    const form = new FormData();
+    form.append("file", req.file.buffer, {
+      filename: req.file.originalname,
+      contentType: req.file.mimetype,
+    });
     const response = await axios.post(
-      `${AI_BASE_URL}/predict`,
-      req.body
+      `${process.env.AI_BASE_URL}/predict-video`,
+      form,
+      { headers: form.getHeaders() },
     );
     res.json(response.data);
   } catch (error) {
-    console.error("AI Predict Error:", error.message);
-    res.status(500).json({ error: "AI predict service failed" });
+    console.error("AI Video Error:", error.message);
+    res.status(500).json({ error: "AI video service failed" });
   }
 });
-
 /**
  * @swagger
  * /api/ai/predict-image:
@@ -119,11 +115,9 @@ router.post("/predict-image", upload.single("file"), async (req, res) => {
       contentType: req.file.mimetype,
     });
 
-    const response = await axios.post(
-      `${AI_BASE_URL}/predict-image`,
-      form,
-      { headers: form.getHeaders() }
-    );
+    const response = await axios.post(`${AI_BASE_URL}/predict-image`, form, {
+      headers: form.getHeaders(),
+    });
     res.json(response.data);
   } catch (error) {
     console.error("AI Predict-Image Error:", error.message);
@@ -170,10 +164,7 @@ router.post("/predict-image", upload.single("file"), async (req, res) => {
  */
 router.post("/chat", async (req, res) => {
   try {
-    const response = await axios.post(
-      `${AI_BASE_URL}/chat`,
-      req.body
-    );
+    const response = await axios.post(`${AI_BASE_URL}/chat`, req.body);
     res.json(response.data);
   } catch (error) {
     console.error("AI Chat Error:", error.message);
@@ -230,10 +221,7 @@ router.post("/chat", async (req, res) => {
  */
 router.post("/verify-sign", async (req, res) => {
   try {
-    const response = await axios.post(
-      `${AI_BASE_URL}/verify-sign`,
-      req.body
-    );
+    const response = await axios.post(`${AI_BASE_URL}/verify-sign`, req.body);
     res.json(response.data);
   } catch (error) {
     console.error("AI Verify-Sign Error:", error.message);
@@ -289,11 +277,9 @@ router.post("/predict-voice", upload.single("file"), async (req, res) => {
       contentType: req.file.mimetype,
     });
 
-    const response = await axios.post(
-      `${AI_BASE_URL}/predict-voice`,
-      form,
-      { headers: form.getHeaders() }
-    );
+    const response = await axios.post(`${AI_BASE_URL}/predict-voice`, form, {
+      headers: form.getHeaders(),
+    });
     res.json(response.data);
   } catch (error) {
     console.error("AI Predict-Voice Error:", error.message);
