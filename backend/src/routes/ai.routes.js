@@ -6,6 +6,9 @@ const router = express.Router();
 
 const upload = multer({ storage: multer.memoryStorage() });
 
+const AI_BASE_URL = process.env.AI_BASE_URL || "https://abdallahessam29-sign-language-ai.hf.space";
+
+
 /**
  * @swagger
  * tags:
@@ -58,7 +61,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 router.post("/predict", async (req, res) => {
   try {
     const response = await axios.post(
-      `${process.env.AI_BASE_URL}/predict`,
+      `${AI_BASE_URL}/predict`,
       req.body
     );
     res.json(response.data);
@@ -117,7 +120,7 @@ router.post("/predict-image", upload.single("file"), async (req, res) => {
     });
 
     const response = await axios.post(
-      `${process.env.AI_BASE_URL}/predict-image`,
+      `${AI_BASE_URL}/predict-image`,
       form,
       { headers: form.getHeaders() }
     );
@@ -168,7 +171,7 @@ router.post("/predict-image", upload.single("file"), async (req, res) => {
 router.post("/chat", async (req, res) => {
   try {
     const response = await axios.post(
-      `${process.env.AI_BASE_URL}/chat`,
+      `${AI_BASE_URL}/chat`,
       req.body
     );
     res.json(response.data);
@@ -228,7 +231,7 @@ router.post("/chat", async (req, res) => {
 router.post("/verify-sign", async (req, res) => {
   try {
     const response = await axios.post(
-      `${process.env.AI_BASE_URL}/verify-sign`,
+      `${AI_BASE_URL}/verify-sign`,
       req.body
     );
     res.json(response.data);
@@ -287,7 +290,7 @@ router.post("/predict-voice", upload.single("file"), async (req, res) => {
     });
 
     const response = await axios.post(
-      `${process.env.AI_BASE_URL}/predict-voice`,
+      `${AI_BASE_URL}/predict-voice`,
       form,
       { headers: form.getHeaders() }
     );
