@@ -50,6 +50,11 @@ const AI_BASE_URL = "https://abdallahessam29-sign-language-ai.hf.space";
  *                   example: 30
  */
 router.post("/predict-video", async (req, res) => {
+  if (!req.file) {
+    return res
+      .status(400)
+      .json({ error: "لازم ترفع ملف فيديو في حقل اسمه file" });
+  }
   try {
     const form = new FormData();
     form.append("file", req.file.buffer, {
