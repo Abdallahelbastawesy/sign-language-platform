@@ -9,12 +9,27 @@ const adminRoutes = require("./src/routes/admin.routes");
 const userRoutes = require("./src/routes/user.routes");
 const signRoutes = require("./src/routes/sign.routes");
 const aiRoutes = require("./src/routes/ai.routes");
+const courseRoutes = require("./src/routes/course.routes");
+const lessonRoutes = require("./src/routes/lesson.routes");
+const subscriptionRoutes = require("./src/routes/subscription.routes");
+const progressRoutes = require("./src/routes/progress.routes");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
+// ✅ Critical for Vercel serverless: ensure DB is connected before every request
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error("DB connection error:", error.message);
+    res.status(503).json({ error: "Database connection failed. Please try again." });
+  }
+});
 
 const options = {
   definition: {
@@ -55,14 +70,16 @@ app.get("/docs", (req, res) => {
 </html>`);
 });
 
-connectDB();
-
 app.get("/", (req, res) => res.send("API is running 🚀"));
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/sign", signRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/courses", courseRoutes);
+app.use("/api/lessons", lessonRoutes);
+app.use("/api/subscriptions", subscriptionRoutes);
+app.use("/api/progress", progressRoutes);
 
 
 
