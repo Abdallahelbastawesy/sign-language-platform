@@ -161,7 +161,7 @@ router.post("/verify-email", authController.verifyEmail);
  *     responses:
  *       200:
  *         description: Reset email sent
- *       404:
+ *       400:
  *         description: User not found
  */
 router.post("/forgot-password", authController.forgotPassword);
