@@ -1,7 +1,6 @@
 const User = require("../models/user.model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const crypto = require("crypto");
 
 const {
   sendVerificationEmail,
@@ -10,6 +9,10 @@ const {
 
 const { OAuth2Client } = require("google-auth-library");
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+// دالة توليد كود 6 أرقام
+const generateCode = () =>
+  Math.floor(100000 + Math.random() * 900000).toString();
 
 // ================= REGISTER =================
 exports.register = async (req, res) => {
@@ -22,26 +25,29 @@ exports.register = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const verificationToken = crypto.randomBytes(32).toString("hex");
+    const verificationCode = generateCode();
+    const verificationCodeExpires = Date.now() + 10 * 60 * 1000; // 10 دقايق
 
     await User.create({
       name,
       email,
       password: hashedPassword,
-      verificationToken,
+      verificationCode,
+      verificationCodeExpires,
       isEmailVerified: false,
       role: "user",
     });
 
     try {
-      await sendVerificationEmail(email, verificationToken);
+      await sendVerificationEmail(email, verificationCode);
       console.log("✅ Verification email sent");
     } catch (err) {
       console.log("❌ Email failed:", err.message);
     }
 
     res.status(201).json({
-      message: "User registered. Please verify your email",
+      message:
+        "User registered. Please check your email for the verification code",
     });
   } catch (error) {
     console.log("❌ Register Error:", error);
@@ -49,7 +55,7 @@ exports.register = async (req, res) => {
   }
 };
 
-// ================= LOGIN =================
+// ================= LOGIN ================= (بدون تغيير)
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -94,34 +100,65 @@ exports.login = async (req, res) => {
   }
 };
 
-// ================= VERIFY EMAIL =================
+// ================= VERIFY EMAIL (بالكود) =================
 exports.verifyEmail = async (req, res) => {
   try {
-    const user = await User.findOne({
-      verificationToken: req.params.token,
-    });
+    const { email, code } = req.body;
+
+    const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(400).json({ message: "Invalid or expired token" });
+      return res.status(400).json({ message: "User not found" });
     }
 
     if (user.isEmailVerified) {
       return res.status(400).json({ message: "Already verified" });
     }
 
+    if (
+      user.verificationCode !== code ||
+      Date.now() > user.verificationCodeExpires
+    ) {
+      return res.status(400).json({ message: "Invalid or expired code" });
+    }
+
     user.isEmailVerified = true;
-    user.verificationToken = null;
+    user.verificationCode = null;
+    user.verificationCodeExpires = null;
 
     await user.save();
 
-    res.send("✅ Email verified successfully. You can login now.");
+    res.json({ message: "Email verified successfully. You can login now." });
   } catch (error) {
     console.log("❌ Verify Error:", error);
     res.status(500).json({ error: error.message });
   }
 };
 
-// ================= FORGOT PASSWORD =================
+// ================= RESEND CODE (اختياري - مفيد جداً) =================
+exports.resendVerificationCode = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (user.isEmailVerified)
+      return res.status(400).json({ message: "Already verified" });
+
+    const verificationCode = generateCode();
+    user.verificationCode = verificationCode;
+    user.verificationCodeExpires = Date.now() + 10 * 60 * 1000;
+    await user.save();
+
+    await sendVerificationEmail(email, verificationCode);
+
+    res.json({ message: "Verification code resent" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// ================= FORGOT PASSWORD (بالكود) =================
 exports.forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -129,44 +166,44 @@ exports.forgotPassword = async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetCode = generateCode();
 
-    user.resetPasswordToken = resetToken;
-    user.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
+    user.resetPasswordCode = resetCode;
+    user.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
 
     await user.save();
 
     try {
-      await sendResetPasswordEmail(email, resetToken); // ✔ صح
+      await sendResetPasswordEmail(email, resetCode);
       console.log("✅ Reset email sent");
     } catch (err) {
       console.log("❌ Reset email failed:", err.message);
     }
 
-    res.json({ message: "Reset password email sent" });
+    res.json({ message: "Reset code sent to your email" });
   } catch (error) {
     console.log("❌ Forgot Password Error:", error);
     res.status(500).json({ message: error.message });
   }
 };
 
-// ================= RESET PASSWORD =================
+// ================= RESET PASSWORD (بالكود) =================
 exports.resetPassword = async (req, res) => {
   try {
-    const { token } = req.params;
-    const { newPassword } = req.body;
+    const { email, code, newPassword } = req.body;
 
     const user = await User.findOne({
-      resetPasswordToken: token,
+      email,
+      resetPasswordCode: code,
       resetPasswordExpire: { $gt: Date.now() },
     });
 
     if (!user) {
-      return res.status(400).json({ message: "Invalid or expired token" });
+      return res.status(400).json({ message: "Invalid or expired code" });
     }
 
     user.password = await bcrypt.hash(newPassword, 10);
-    user.resetPasswordToken = null;
+    user.resetPasswordCode = null;
     user.resetPasswordExpire = null;
 
     await user.save();
@@ -178,7 +215,7 @@ exports.resetPassword = async (req, res) => {
   }
 };
 
-// ================= GOOGLE LOGIN =================
+// ================= GOOGLE LOGIN ================= (بدون تغيير)
 exports.googleLogin = async (req, res) => {
   try {
     const { token } = req.body;
@@ -218,7 +255,7 @@ exports.googleLogin = async (req, res) => {
   }
 };
 
-// ================= REFRESH TOKEN =================
+// ================= REFRESH TOKEN ================= (بدون تغيير)
 exports.refreshToken = async (req, res) => {
   try {
     const { refreshToken } = req.body;

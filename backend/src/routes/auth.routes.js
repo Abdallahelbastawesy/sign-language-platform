@@ -116,23 +116,31 @@ router.post("/refresh", authController.refreshToken);
 
 /**
  * @swagger
- * /api/auth/verify-email/{token}:
- *   get:
- *     summary: Verify email
+ * /api/auth/verify-email:
+ *   post:
+ *     summary: Verify email with code
  *     tags: [Auth]
- *     parameters:
- *       - in: path
- *         name: token
- *         required: true
- *         schema:
- *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, code]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: test@gmail.com
+ *               code:
+ *                 type: string
+ *                 example: "123456"
  *     responses:
  *       200:
  *         description: Email verified
  *       400:
- *         description: Invalid token
+ *         description: Invalid or expired code
  */
-router.get("/verify-email/:token", authController.verifyEmail);
+router.post("/verify-email", authController.verifyEmail);
 
 /**
  * @swagger
@@ -186,6 +194,8 @@ router.post("/forgot-password", authController.forgotPassword);
  *       400:
  *         description: Invalid or expired token
  */
-router.post("/reset-password/:token", authController.resetPassword);
+
+router.post("/reset-password", authController.resetPassword);
+router.post("/resend-code", authController.resendVerificationCode);
 
 module.exports = router;
