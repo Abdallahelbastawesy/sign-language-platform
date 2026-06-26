@@ -144,7 +144,7 @@ router.post("/verify-email", authController.verifyEmail);
 
 /**
  * @swagger
- * /api/auth/forgotpassword:
+ * /api/auth/forgot-password:
  *   post:
  *     summary: Send reset password email
  *     tags: [Auth]
