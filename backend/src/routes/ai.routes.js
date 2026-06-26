@@ -179,6 +179,57 @@ router.post("/chat", async (req, res) => {
 
 /**
  * @swagger
+ * /api/ai/predict:
+ *   post:
+ *     summary: LSTM Gesture Model - predict Arabic sign from keypoint frames
+ *     tags: [AI]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [frames]
+ *             properties:
+ *               frames:
+ *                 type: array
+ *                 description: Array of 30 frames, each with 126 keypoints
+ *                 items:
+ *                   type: array
+ *                   items:
+ *                     type: number
+ *     responses:
+ *       200:
+ *         description: Prediction result
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 label:
+ *                   type: string
+ *                   example: شكرا
+ *                 confidence:
+ *                   type: number
+ *                   example: 0.91
+ *       500:
+ *         description: AI service error
+ */
+router.post("/predict", async (req, res) => {
+  try {
+    const response = await axios.post(`${AI_BASE_URL}/predict`, req.body, {
+      timeout: 30000,
+    });
+    res.json(response.data);
+  } catch (error) {
+    console.error("AI Predict Error:", error.message);
+    res.status(500).json({ error: "AI predict service failed" });
+  }
+});
+
+
+/**
+ * @swagger
  * /api/ai/verify-sign:
  *   post:
  *     summary: Sign Verification Model - check if user's sign is correct
