@@ -49,7 +49,7 @@ const AI_BASE_URL = "https://abdallahessam29-sign-language-ai.hf.space";
  *                   type: integer
  *                   example: 30
  */
-router.post("/predict-video", async (req, res) => {
+router.post("/predict-video", upload.single("file"), async (req, res) => {
   if (!req.file) {
     return res
       .status(400)

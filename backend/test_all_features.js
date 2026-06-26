@@ -116,9 +116,12 @@ async function suiteAuthAPIs() {
   userId = registeredUser._id;
   
   // Verify token verification endpoint first
-  const verifyRes = await axios.get(`${BASE_URL}/api/auth/verify-email/${registeredUser.verificationToken}`);
+  const verifyRes = await axios.post(`${BASE_URL}/api/auth/verify-email`, {
+    email: "user@test.com",
+    code: registeredUser.verificationCode
+  });
   assert(verifyRes.status === 200, "Verify email should return 200");
-  console.log("  ✅ GET /api/auth/verify-email/:token - Email verified via token");
+  console.log("  ✅ POST /api/auth/verify-email - Email verified via code");
 
   // Ensure DB updated
   const verifiedUser = await User.findOne({ email: "user@test.com" });
@@ -148,13 +151,15 @@ async function suiteAuthAPIs() {
   // 1d. Forgot password & Reset password
   const forgotRes = await axios.post(`${BASE_URL}/api/auth/forgot-password`, { email: "user@test.com" });
   assert(forgotRes.status === 200, "Forgot password should return 200");
-  console.log("  ✅ POST /api/auth/forgot-password - Email reset token generated");
+  console.log("  ✅ POST /api/auth/forgot-password - Email reset code generated");
 
   // Get the reset token from database
   const userWithReset = await User.findOne({ email: "user@test.com" });
-  assert(userWithReset.resetPasswordToken, "Reset token should be stored");
+  assert(userWithReset.resetPasswordCode, "Reset code should be stored");
 
-  const resetRes = await axios.post(`${BASE_URL}/api/auth/reset-password/${userWithReset.resetPasswordToken}`, {
+  const resetRes = await axios.post(`${BASE_URL}/api/auth/reset-password`, {
+    email: "user@test.com",
+    code: userWithReset.resetPasswordCode,
     newPassword: "newpassword123"
   });
   assert(resetRes.status === 200, "Reset password should return 200");

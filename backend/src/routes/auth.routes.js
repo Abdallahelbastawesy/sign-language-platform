@@ -168,31 +168,32 @@ router.post("/forgot-password", authController.forgotPassword);
 
 /**
  * @swagger
- * /api/auth/reset-password/{token}:
+ * /api/auth/reset-password:
  *   post:
- *     summary: Reset password
+ *     summary: Reset password with code
  *     tags: [Auth]
- *     parameters:
- *       - in: path
- *         name: token
- *         required: true
- *         schema:
- *           type: string
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             required: [email, code, newPassword]
  *             properties:
+ *               email:
+ *                 type: string
+ *                 example: test@gmail.com
+ *               code:
+ *                 type: string
+ *                 example: "123456"
  *               newPassword:
  *                 type: string
- *                 example: 123456
+ *                 example: "new_password_123"
  *     responses:
  *       200:
- *         description: Password updated
+ *         description: Password updated successfully
  *       400:
- *         description: Invalid or expired token
+ *         description: Invalid or expired code
  */
 
 router.post("/reset-password", authController.resetPassword);
