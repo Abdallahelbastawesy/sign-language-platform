@@ -70,7 +70,11 @@ router.post("/predict-video", upload.single("file"), async (req, res) => {
     res.json(response.data);
   } catch (error) {
     console.error("AI Video Error:", error.message);
-    res.status(500).json({ error: "AI video service failed" });
+    res.status(500).json({ 
+      error: "AI video service failed",
+      details: error.message,
+      response: error.response?.data
+    });
   }
 });
 /**
