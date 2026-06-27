@@ -6,7 +6,12 @@ const router = express.Router();
 
 const upload = multer({ storage: multer.memoryStorage() });
 
-const AI_BASE_URL = "https://abdallahessam29-sign-language-ai.hf.space";
+let rawAiUrl = process.env.AI_BASE_URL || "https://abdallahessam29-sign-language-ai.hf.space";
+rawAiUrl = rawAiUrl.trim();
+if (rawAiUrl.endsWith("/")) {
+  rawAiUrl = rawAiUrl.slice(0, -1);
+}
+const AI_BASE_URL = rawAiUrl;
 
 /**
  * @swagger
@@ -55,7 +60,7 @@ router.post("/predict-video", upload.single("file"), async (req, res) => {
       .status(400)
       .json({ error: "لازم ترفع ملف فيديو في حقل اسمه file" });
   }
-  const targetUrl = `${process.env.AI_BASE_URL || AI_BASE_URL}/predict-video`;
+  const targetUrl = `${AI_BASE_URL}/predict-video`;
   try {
     const form = new FormData();
     form.append("file", req.file.buffer, {
