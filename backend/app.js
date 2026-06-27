@@ -35,7 +35,11 @@ const options = {
   definition: {
     openapi: "3.0.0",
     info: { title: "Sign Language API", version: "1.0.0" },
-    servers: [{ url: process.env.BASE_URL || "http://localhost:5000" }],
+    servers: [
+      { url: "/", description: "Current Server (Relative)" },
+      { url: "https://sign-language-platform.vercel.app", description: "Production Server (Vercel)" },
+      { url: "http://localhost:5000", description: "Local Server" }
+    ],
   },
   apis: ["./backend/src/routes/*.js"],
 };

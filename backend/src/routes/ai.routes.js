@@ -61,8 +61,9 @@ router.post("/predict-video", upload.single("file"), async (req, res) => {
       filename: req.file.originalname,
       contentType: req.file.mimetype,
     });
+    const targetUrl = `${process.env.AI_BASE_URL || AI_BASE_URL}/predict-video`;
     const response = await axios.post(
-      `${process.env.AI_BASE_URL}/predict-video`,
+      targetUrl,
       form,
       { headers: form.getHeaders() },
     );
