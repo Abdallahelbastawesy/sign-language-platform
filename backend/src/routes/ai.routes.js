@@ -55,13 +55,13 @@ router.post("/predict-video", upload.single("file"), async (req, res) => {
       .status(400)
       .json({ error: "لازم ترفع ملف فيديو في حقل اسمه file" });
   }
+  const targetUrl = `${process.env.AI_BASE_URL || AI_BASE_URL}/predict-video`;
   try {
     const form = new FormData();
     form.append("file", req.file.buffer, {
       filename: req.file.originalname,
       contentType: req.file.mimetype,
     });
-    const targetUrl = `${process.env.AI_BASE_URL || AI_BASE_URL}/predict-video`;
     const response = await axios.post(
       targetUrl,
       form,
@@ -73,6 +73,7 @@ router.post("/predict-video", upload.single("file"), async (req, res) => {
     res.status(500).json({ 
       error: "AI video service failed",
       details: error.message,
+      targetUrl: targetUrl,
       response: error.response?.data
     });
   }
