@@ -57,6 +57,10 @@ app.get("/docs", (req, res) => {
   <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
 </head>
 <body>
+  <div style="background: linear-gradient(135deg, #00f0ff, #bd00ff); padding: 15px; text-align: center; font-family: sans-serif; font-weight: bold; border-radius: 8px; margin: 15px; color: white; box-shadow: 0 4px 15px rgba(0, 240, 255, 0.2);">
+    🎥 Real-Time Sign Language Translator: Test real-time hand-landmark predictions via your webcam! 
+    <a href="/translator" style="color: #00ff66; text-decoration: underline; margin-left: 10px; font-size: 1.1rem;">👉 Open Webcam Translator</a>
+  </div>
   <div id="swagger-ui"></div>
   <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
   <script>
@@ -72,6 +76,18 @@ app.get("/docs", (req, res) => {
   </script>
 </body>
 </html>`);
+});
+
+const fs = require("fs");
+const path = require("path");
+
+app.get("/translator", (req, res) => {
+  const htmlPath = path.join(__dirname, "src", "views", "translator.html");
+  if (fs.existsSync(htmlPath)) {
+    res.sendFile(htmlPath);
+  } else {
+    res.status(404).send("Translator view not found");
+  }
 });
 
 app.get("/", (req, res) => res.send("API is running 🚀"));
