@@ -183,11 +183,13 @@ router.post("/predict-image", upload.single("file"), async (req, res) => {
  */
 router.post("/chat", async (req, res) => {
   try {
-    const response = await axios.post(`${AI_BASE_URL}/chat`, req.body);
+    const response = await axios.post(`${AI_BASE_URL}/chat`, req.body, {
+      timeout: 30000, // 30 second timeout — prevents Swagger hanging forever
+    });
     res.json(response.data);
   } catch (error) {
     console.error("AI Chat Error:", error.message);
-    res.status(500).json({ error: "AI chat service failed" });
+    res.status(500).json({ error: "AI chat service failed", details: error.message });
   }
 });
 
