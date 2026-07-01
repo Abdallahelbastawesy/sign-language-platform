@@ -12,7 +12,7 @@ process.env.MONGODB_URI = "mongodb://localhost:27017/sign_language_test";
 process.env.JWT_SECRET = "test_secret_for_jwt_validation_98765";
 process.env.REFRESH_SECRET = "test_secret_for_refresh_validation_56789";
 process.env.RESEND_API_KEY = "re_testkey123456789000000000";
-process.env.AI_BASE_URL = "https://abdallahessam29-sign-language-ai.hf.space";
+process.env.AI_BASE_URL = process.env.AI_BASE_URL || "http://127.0.0.1:7860";
 
 // Load app and models
 const app = require("./app");
@@ -468,7 +468,10 @@ async function suiteAIModelsIntegrations() {
   });
   assert(voiceRes.status === 200, "AI predict-voice should return 200");
   assert(voiceRes.data.status === "success" || voiceRes.data.status === "fail", "Should return status field");
-  console.log(`  ✅ POST /api/ai/predict-voice - Voice Model response: status="${voiceRes.data.status}", transcribed="${voiceRes.data.text || ''}"`);
+  assert(Array.isArray(voiceRes.data.videos), "Should return videos array");
+  assert(voiceRes.data.video_count !== undefined, "Should return video_count");
+  assert(Array.isArray(voiceRes.data.missing_words), "Should return missing_words array");
+  console.log(`  ✅ POST /api/ai/predict-voice - Voice Model response: status="${voiceRes.data.status}", transcribed="${voiceRes.data.text || ''}", videos=${voiceRes.data.video_count}`);
 
   // 6f. POST /api/sign (Video Sign Prediction Proxy)
   const proxyRes = await axios.post(`${BASE_URL}/api/sign`, predictPayload);

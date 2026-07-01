@@ -6,7 +6,10 @@ const router = express.Router();
 
 const upload = multer({ storage: multer.memoryStorage() });
 
-let rawAiUrl = process.env.AI_BASE_URL || "https://abdallahessam29-sign-language-ai.hf.space";
+const defaultAiUrl = process.env.VERCEL || process.env.NODE_ENV === "production"
+  ? "https://abdallahessam29-sign-language-ai.hf.space"
+  : "http://127.0.0.1:7860";
+let rawAiUrl = process.env.AI_BASE_URL || defaultAiUrl;
 rawAiUrl = rawAiUrl.trim();
 if (rawAiUrl.endsWith("/")) {
   rawAiUrl = rawAiUrl.slice(0, -1);
@@ -323,10 +326,37 @@ router.post("/verify-sign", async (req, res) => {
  *               properties:
  *                 text:
  *                   type: string
- *                   example: مرحبا بكم في تطبيق عبر
+ *                   example: شكرا
  *                 status:
  *                   type: string
  *                   example: success
+ *                 matched_text:
+ *                   type: string
+ *                   example: شكرا
+ *                 video_count:
+ *                   type: integer
+ *                   example: 1
+ *                 videos:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       order:
+ *                         type: integer
+ *                         example: 1
+ *                       label:
+ *                         type: string
+ *                         example: شكرا
+ *                       filename:
+ *                         type: string
+ *                         example: شكرا.mp4
+ *                       url:
+ *                         type: string
+ *                         example: https://abdallahessam29-sign-language-ai.hf.space/videos/%D8%B4%D9%83%D8%B1%D8%A7.mp4
+ *                 missing_words:
+ *                   type: array
+ *                   items:
+ *                     type: string
  *       400:
  *         description: No file uploaded
  *       500:
@@ -346,11 +376,16 @@ router.post("/predict-voice", upload.single("file"), async (req, res) => {
 
     const response = await axios.post(`${AI_BASE_URL}/predict-voice`, form, {
       headers: form.getHeaders(),
+      timeout: 60000,
     });
     res.json(response.data);
   } catch (error) {
     console.error("AI Predict-Voice Error:", error.message);
-    res.status(500).json({ error: "AI voice service failed" });
+    res.status(500).json({
+      error: "AI voice service failed",
+      details: error.message,
+      response: error.response?.data,
+    });
   }
 });
 

@@ -3,6 +3,8 @@ node_modules/
 dist/
 ai_env/
 venv/
+.venv/
+*.log
 __pycache__/
 *.pyc
 .env
