@@ -55,6 +55,8 @@ app.get("/docs", (req, res) => {
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
   <style>
     .voice-recorder { margin: 15px; padding: 16px; border: 1px solid #d8dde6; border-radius: 8px; font-family: Arial, sans-serif; background: #fff; }
     .voice-recorder h2 { margin: 0 0 10px; font-size: 18px; }
@@ -65,6 +67,26 @@ app.get("/docs", (req, res) => {
     .voice-recorder pre { overflow: auto; max-height: 260px; padding: 12px; background: #0f172a; color: #e2e8f0; border-radius: 6px; direction: ltr; }
     .voice-video-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 12px; }
     .voice-video-list video { width: 100%; max-height: 240px; background: #000; border-radius: 6px; }
+    
+    /* Verify Tester Styles */
+    .verify-tester { margin: 15px; padding: 16px; border: 1px solid #d8dde6; border-radius: 8px; font-family: Arial, sans-serif; background: #fff; }
+    .verify-tester h2 { margin: 0 0 10px; font-size: 18px; }
+    .verify-tester select { padding: 8px 12px; border-radius: 6px; border: 1px solid #d8dde6; font-size: 14px; margin-right: 8px; margin-bottom: 8px; font-family: sans-serif; }
+    .verify-tester button { margin: 4px 8px 4px 0; padding: 9px 12px; border: 0; border-radius: 6px; cursor: pointer; color: #fff; background: #2563eb; font-weight: 700; }
+    .verify-tester button:disabled { cursor: not-allowed; opacity: 0.55; }
+    .verify-tester .status { font-weight: bold; padding: 4px 8px; border-radius: 4px; display: inline-block; margin-top: 8px; font-size: 14px; }
+    .verify-tester .status-preparing { background: #fef3c7; color: #d97706; }
+    .verify-tester .status-recording { background: #dbeafe; color: #2563eb; }
+    .verify-tester .status-processing { background: #e0f2fe; color: #0284c7; }
+    .verify-tester .status-completed { background: #dcfce7; color: #16a34a; }
+    .verify-tester .status-idle { background: #f1f5f9; color: #475569; }
+    .verify-tester .result-card { margin-top: 12px; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; display: none; min-width: 280px; font-size: 14px; line-height: 1.6; }
+    .verify-tester .result-card.success { background: #f0fdf4; border-color: #bbf7d0; color: #14532d; }
+    .verify-tester .result-card.fail { background: #fef2f2; border-color: #fecaca; color: #7f1d1d; }
+    .verify-tester .webcam-box { position: relative; width: 320px; height: 240px; background: #000; border-radius: 6px; overflow: hidden; margin-top: 12px; }
+    .verify-tester video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+    .verify-tester canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: scaleX(-1); pointer-events: none; }
+    .verify-tester .warning-msg { color: #dc2626; font-weight: bold; margin-top: 8px; font-size: 14px; display: none; }
   </style>
 </head>
 <body>
@@ -82,6 +104,53 @@ app.get("/docs", (req, res) => {
     <pre id="voice-response" style="display:none;"></pre>
     <div id="voice-videos" class="voice-video-list"></div>
   </section>
+
+  <!-- Sign Verification Tester Widget -->
+  <section class="verify-tester" aria-label="Sign verification tester">
+    <h2>Sign Verification Tester</h2>
+    <p>Perform a sign and verify if it matches the expected word using your webcam and the deep learning model.</p>
+    <div style="margin-bottom: 12px;">
+      <label for="verify-expected-word" style="font-weight: bold; margin-right: 8px; font-family: sans-serif; font-size: 14px;">Expected Sign:</label>
+      <select id="verify-expected-word">
+        <option value="أحترم نفسك">أحترم نفسك (Ahterem Nafsak)</option>
+        <option value="أخويا">أخويا (Akhoya)</option>
+        <option value="أسف">أسف (Asif)</option>
+        <option value="أسمك">أسمك (Ismak)</option>
+        <option value="أفردها">أفردها (Afredha)</option>
+        <option value="ألم">ألم (Alam)</option>
+        <option value="أوضه">أوضه (Oda)</option>
+        <option value="ارمي ورا ضهرك">ارمي ورا ضهرك (Ermi Wara Dahrk)</option>
+        <option value="الصم">الصم (El-Som)</option>
+        <option value="النهارده">النهارده (El-Naharda)</option>
+        <option value="بتدرس أي">بتدرس أي (Betedres Ey)</option>
+        <option value="بحب">بحب (Baheb)</option>
+        <option value="بضحك">بضحك (Badhak)</option>
+        <option value="تعبان">تعبان (Tabaan)</option>
+        <option value="جامعه">جامعه (Gamaa)</option>
+        <option value="ساكن فين">ساكن فين (Saken Feen)</option>
+        <option value="شكرا" selected>شكرا (Shokran)</option>
+        <option value="عامل اي">عامل اي (Amel Ey)</option>
+        <option value="فرحان">فرحان (Farhan)</option>
+        <option value="كلية">كلية (Koleya)</option>
+        <option value="مبسوط">مبسوط (Mabsout)</option>
+        <option value="مخنوق">مخنوق (Makhnouq)</option>
+        <option value="مدرسة">مدرسة (Madrasa)</option>
+        <option value="مرتاح">مرتاح (Mertah)</option>
+        <option value="مش متجوز">مش متجوز (Mesh Metgawiz)</option>
+      </select>
+      <button id="verify-start" type="button" onclick="startVerification()">Start Verification</button>
+      <span id="verify-status" class="status status-idle">Idle</span>
+    </div>
+    <div id="verify-warning" class="warning-msg">Keep hands visible in camera view!</div>
+    <div style="display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start;">
+      <div class="webcam-box">
+        <video id="verify-webcam" autoplay playsinline muted></video>
+        <canvas id="verify-overlay"></canvas>
+      </div>
+      <div id="verify-result-card" class="result-card"></div>
+    </div>
+  </section>
+
   <div id="swagger-ui"></div>
   <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
   <script>
@@ -167,6 +236,253 @@ app.get("/docs", (req, res) => {
         }
       });
     });
+
+    // === Sign Verification Tester JS ===
+    let verifyHands = null;
+    let verifyCamera = null;
+    let verifyFrameQueue = [];
+    let verifyIsActive = false;
+    let verifyStream = null;
+    const verifySeqLen = 30;
+
+    function setVerifyStatus(statusClass, statusText) {
+      const el = document.getElementById('verify-status');
+      el.className = 'status ' + statusClass;
+      el.textContent = statusText;
+    }
+
+    function initVerifyHands() {
+      if (verifyHands) return;
+      verifyHands = new Hands({
+        locateFile: (file) => \`https://cdn.jsdelivr.net/npm/@mediapipe/hands/\${file}\`
+      });
+      verifyHands.setOptions({
+        maxNumHands: 2,
+        modelComplexity: 1,
+        minDetectionConfidence: 0.7,
+        minTrackingConfidence: 0.7
+      });
+      verifyHands.onResults(onVerifyResults);
+    }
+
+    function extractVerifyCoordinates(results) {
+      let keypoints = [];
+      let detected = false;
+      if (results.multiHandLandmarks && results.multiHandedness) {
+        detected = true;
+        const handsData = [];
+        for (let i = 0; i < results.multiHandLandmarks.length; i++) {
+          handsData.push({
+            landmarks: results.multiHandLandmarks[i],
+            label: results.multiHandedness[i].label,
+            x0: results.multiHandLandmarks[i][0].x
+          });
+        }
+        handsData.sort((a, b) => a.x0 - b.x0);
+
+        for (let h = 0; h < 2; h++) {
+          if (h < handsData.length) {
+            const hand = handsData[h].landmarks;
+            const wrist = hand[0];
+            for (let i = 0; i < hand.length; i++) {
+              keypoints.push(hand[i].x - wrist.x);
+              keypoints.push(hand[i].y - wrist.y);
+              keypoints.push(hand[i].z);
+            }
+          } else {
+            for (let i = 0; i < 63; i++) keypoints.push(0.0);
+          }
+        }
+      } else {
+        for (let i = 0; i < 126; i++) keypoints.push(0.0);
+      }
+
+      let maxVal = 0;
+      for (let i = 0; i < keypoints.length; i++) {
+        const absVal = Math.abs(keypoints[i]);
+        if (absVal > maxVal) maxVal = absVal;
+      }
+      if (maxVal > 0) {
+        for (let i = 0; i < keypoints.length; i++) {
+          keypoints[i] = keypoints[i] / maxVal;
+        }
+      }
+      return { keypoints, detected };
+    }
+
+    function drawVerifyHandLandmarks(ctx, landmarks, width, height) {
+      ctx.fillStyle = '#bd00ff';
+      ctx.strokeStyle = '#00f0ff';
+      ctx.lineWidth = 3;
+      const connections = [
+        [0,1],[1,2],[2,3],[3,4],
+        [0,5],[5,6],[6,7],[7,8],
+        [5,9],[9,10],[10,11],[11,12],
+        [9,13],[13,14],[14,15],[15,16],
+        [0,17],[17,18],[18,19],[19,20],
+        [13,17],[5,17]
+      ];
+      connections.forEach(([from, to]) => {
+        const ptFrom = landmarks[from];
+        const ptTo = landmarks[to];
+        ctx.beginPath();
+        ctx.moveTo(ptFrom.x * width, ptFrom.y * height);
+        ctx.lineTo(ptTo.x * width, ptTo.y * height);
+        ctx.stroke();
+      });
+      for (let i = 0; i < landmarks.length; i++) {
+        const pt = landmarks[i];
+        ctx.beginPath();
+        ctx.arc(pt.x * width, pt.y * height, 4, 0, 2 * Math.PI);
+        ctx.fill();
+      }
+    }
+
+    function onVerifyResults(results) {
+      if (!verifyIsActive) return;
+      const video = document.getElementById('verify-webcam');
+      const canvas = document.getElementById('verify-overlay');
+      const ctx = canvas.getContext('2d');
+
+      if (canvas.width !== video.videoWidth) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+      }
+      ctx.save();
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (results.multiHandLandmarks) {
+        for (let i = 0; i < results.multiHandLandmarks.length; i++) {
+          drawVerifyHandLandmarks(ctx, results.multiHandLandmarks[i], canvas.width, canvas.height);
+        }
+      }
+      ctx.restore();
+
+      const { keypoints, detected } = extractVerifyCoordinates(results);
+      const warningEl = document.getElementById('verify-warning');
+
+      if (detected) {
+        warningEl.style.display = 'none';
+        verifyFrameQueue.push(keypoints);
+        setVerifyStatus('status-recording', \`Recording: (\${verifyFrameQueue.length}/\${verifySeqLen} frames)\`);
+
+        if (verifyFrameQueue.length >= verifySeqLen) {
+          verifyIsActive = false;
+          stopVerifyCamera();
+          submitVerification();
+        }
+      } else {
+        warningEl.style.display = 'block';
+        warningEl.textContent = 'Keep hands visible in camera view!';
+      }
+    }
+
+    async function submitVerification() {
+      setVerifyStatus('status-processing', 'Processing...');
+      const expected = document.getElementById('verify-expected-word').value;
+      const startTime = performance.now();
+
+      try {
+        const response = await fetch('/api/ai/verify-sign', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            expected_word: expected,
+            frames: verifyFrameQueue
+          })
+        });
+        const duration = ((performance.now() - startTime) / 1000).toFixed(2);
+        const data = await response.json();
+        
+        setVerifyStatus('status-completed', 'Completed');
+        renderVerifyResult(data, duration);
+      } catch (err) {
+        setVerifyStatus('status-idle', 'Idle');
+        alert('Verification request failed: ' + err.message);
+      }
+    }
+
+    function renderVerifyResult(data, duration) {
+      const card = document.getElementById('verify-result-card');
+      card.style.display = 'block';
+      if (data.error) {
+        card.className = 'result-card fail';
+        card.innerHTML = \`<strong>Error:</strong> \${data.error}<br>
+                          <strong>Response Time:</strong> \${duration} seconds\`;
+        return;
+      }
+      const isCorrect = data.correct;
+      card.className = 'result-card ' + (isCorrect ? 'success' : 'fail');
+      
+      let warningHtml = '';
+      if (data.warning) {
+        warningHtml = \`<div style="margin-top: 8px; color: #d97706; font-size: 0.85rem;">⚠️ \${data.warning}</div>\`;
+      }
+
+      card.innerHTML = \`
+        <div style="font-weight: bold; font-size: 1.1rem; margin-bottom: 8px;">
+          \${isCorrect ? '✅ Verification Passed!' : '❌ Verification Failed!'}
+        </div>
+        <strong>Expected Sign:</strong> \${data.expected}<br>
+        <strong>Predicted Sign:</strong> \${data.got || 'None'}<br>
+        <strong>Correct:</strong> \${isCorrect ? 'Yes' : 'No'}<br>
+        <strong>Confidence:</strong> \${data.confidence}%<br>
+        <strong>Response Time:</strong> \${duration} seconds
+        \${warningHtml}
+      \`;
+    }
+
+    function stopVerifyCamera() {
+      verifyIsActive = false;
+      if (verifyCamera) {
+        try {
+          verifyCamera.stop();
+        } catch (e) {}
+        verifyCamera = null;
+      }
+      if (verifyStream) {
+        verifyStream.getTracks().forEach(track => track.stop());
+        verifyStream = null;
+      }
+      document.getElementById('verify-webcam').srcObject = null;
+      document.getElementById('verify-start').disabled = false;
+    }
+
+    async function startVerification() {
+      initVerifyHands();
+      verifyFrameQueue = [];
+      verifyIsActive = true;
+      document.getElementById('verify-start').disabled = true;
+      document.getElementById('verify-result-card').style.display = 'none';
+      document.getElementById('verify-warning').style.display = 'none';
+      setVerifyStatus('status-preparing', 'Preparing...');
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: 640, height: 480 }
+        });
+        verifyStream = stream;
+        const video = document.getElementById('verify-webcam');
+        video.srcObject = stream;
+        
+        verifyCamera = new Camera(video, {
+          onFrame: async () => {
+            if (verifyIsActive) {
+              await verifyHands.send({ image: video });
+            }
+          },
+          width: 640,
+          height: 480
+        });
+        verifyCamera.start();
+      } catch (err) {
+        verifyIsActive = false;
+        document.getElementById('verify-start').disabled = false;
+        setVerifyStatus('status-idle', 'Idle');
+        alert('Failed to access camera: ' + err.message);
+      }
+    }
 
     window.onload = function() {
       SwaggerUIBundle({
