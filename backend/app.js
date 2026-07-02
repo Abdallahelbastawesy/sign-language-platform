@@ -139,6 +139,7 @@ app.get("/docs", (req, res) => {
         <option value="مش متجوز">مش متجوز (Mesh Metgawiz)</option>
       </select>
       <button id="verify-start" type="button" onclick="startVerification()">Start Verification</button>
+      <button id="verify-stop" type="button" onclick="stopVerification()" disabled style="background-color: #dc2626; margin-left: 8px;">Stop Verification</button>
       <span id="verify-status" class="status status-idle">Idle</span>
     </div>
     <div id="verify-warning" class="warning-msg">Keep hands visible in camera view!</div>
@@ -363,20 +364,43 @@ app.get("/docs", (req, res) => {
       if (detected) {
         warningEl.style.display = 'none';
         verifyFrameQueue.push(keypoints);
-        setVerifyStatus('status-recording', \`Recording: (\${verifyFrameQueue.length}/\${verifySeqLen} frames)\`);
-
-        if (verifyFrameQueue.length >= verifySeqLen) {
-          verifyIsActive = false;
-          stopVerifyCamera();
-          submitVerification();
-        }
+        setVerifyStatus('status-recording', \`Recording: (\${verifyFrameQueue.length} frames)\`);
       } else {
         warningEl.style.display = 'block';
         warningEl.textContent = 'Keep hands visible in camera view!';
       }
     }
 
-    async function submitVerification() {
+    function resampleFrames(frames, targetLen) {
+      if (frames.length === 0) {
+        return Array(targetLen).fill(null).map(() => Array(126).fill(0.0));
+      }
+      if (frames.length === targetLen) {
+        return frames;
+      }
+      let resampled = [];
+      for (let i = 0; i < targetLen; i++) {
+        let index;
+        if (targetLen === 1) {
+          index = 0;
+        } else {
+          index = Math.round(i * (frames.length - 1) / (targetLen - 1));
+        }
+        resampled.push(frames[index]);
+      }
+      return resampled;
+    }
+
+    function stopVerification() {
+      if (!verifyIsActive) return;
+      verifyIsActive = false;
+      stopVerifyCamera();
+      
+      const processedFrames = resampleFrames(verifyFrameQueue, 30);
+      submitVerification(processedFrames);
+    }
+
+    async function submitVerification(framesToSend) {
       setVerifyStatus('status-processing', 'Processing...');
       const expected = document.getElementById('verify-expected-word').value;
       const startTime = performance.now();
@@ -389,7 +413,7 @@ app.get("/docs", (req, res) => {
           },
           body: JSON.stringify({
             expected_word: expected,
-            frames: verifyFrameQueue
+            frames: framesToSend
           })
         });
         const duration = ((performance.now() - startTime) / 1000).toFixed(2);
@@ -447,6 +471,7 @@ app.get("/docs", (req, res) => {
       }
       document.getElementById('verify-webcam').srcObject = null;
       document.getElementById('verify-start').disabled = false;
+      document.getElementById('verify-stop').disabled = true;
     }
 
     async function startVerification() {
@@ -454,6 +479,7 @@ app.get("/docs", (req, res) => {
       verifyFrameQueue = [];
       verifyIsActive = true;
       document.getElementById('verify-start').disabled = true;
+      document.getElementById('verify-stop').disabled = false;
       document.getElementById('verify-result-card').style.display = 'none';
       document.getElementById('verify-warning').style.display = 'none';
       setVerifyStatus('status-preparing', 'Preparing...');
@@ -479,6 +505,7 @@ app.get("/docs", (req, res) => {
       } catch (err) {
         verifyIsActive = false;
         document.getElementById('verify-start').disabled = false;
+        document.getElementById('verify-stop').disabled = true;
         setVerifyStatus('status-idle', 'Idle');
         alert('Failed to access camera: ' + err.message);
       }
