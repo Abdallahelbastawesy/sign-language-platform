@@ -293,11 +293,17 @@ router.post("/predict", async (req, res) => {
  */
 router.post("/verify-sign", async (req, res) => {
   try {
-    const response = await axios.post(`${AI_BASE_URL}/verify-sign`, req.body);
+    const response = await axios.post(`${AI_BASE_URL}/verify-sign`, req.body, {
+      timeout: 30000, // 30 second timeout — prevents hanging if AI service is slow
+    });
     res.json(response.data);
   } catch (error) {
     console.error("AI Verify-Sign Error:", error.message);
-    res.status(500).json({ error: "AI verify-sign service failed" });
+    res.status(500).json({
+      error: "AI verify-sign service failed",
+      details: error.message,
+      response: error.response?.data,
+    });
   }
 });
 
