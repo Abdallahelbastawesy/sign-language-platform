@@ -48,6 +48,9 @@ const specs = swaggerJsdoc(options);
 app.get("/api-docs/json", (req, res) => res.json(specs));
 
 app.get("/docs", (req, res) => {
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
   res.send(`<!DOCTYPE html>
 <html>
 <head>
@@ -244,7 +247,6 @@ app.get("/docs", (req, res) => {
     let verifyFrameQueue = [];
     let verifyIsActive = false;
     let verifyStream = null;
-    const verifySeqLen = 30;
 
     function setVerifyStatus(statusClass, statusText) {
       const el = document.getElementById('verify-status');
