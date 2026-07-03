@@ -108,6 +108,18 @@ app.get("/docs", (req, res) => {
     <div id="voice-videos" class="voice-video-list"></div>
   </section>
 
+  <section class="voice-recorder" aria-label="Text to sign translator">
+    <h2>Text to Sign Translator</h2>
+    <p>Type Arabic text, submit it to <code>/api/ai/predict-text</code>, and preview the returned sign videos.</p>
+    <textarea id="text-input" placeholder="اكتب النص العربي هنا..." style="width: 100%; min-height: 80px; padding: 10px; border: 1px solid #d8dde6; border-radius: 6px; margin-bottom: 8px; font-family: sans-serif; font-size: 16px; box-sizing: border-box; resize: vertical;"></textarea>
+    <div>
+      <button id="text-translate-btn" type="button" onclick="translateText()">Translate</button>
+      <span id="text-status" class="status">Idle</span>
+    </div>
+    <pre id="text-response" style="display:none;"></pre>
+    <div id="text-videos" class="voice-video-list"></div>
+  </section>
+
   <!-- Sign Verification Tester Widget -->
   <section class="verify-tester" aria-label="Sign verification tester">
     <h2>Sign Verification Tester</h2>
@@ -240,6 +252,64 @@ app.get("/docs", (req, res) => {
         }
       });
     });
+
+    async function translateText() {
+      const textInput = document.getElementById('text-input').value;
+      const statusEl = document.getElementById('text-status');
+      const responseEl = document.getElementById('text-response');
+      const videosEl = document.getElementById('text-videos');
+      const translateBtn = document.getElementById('text-translate-btn');
+
+      if (!textInput || !textInput.trim()) {
+        alert('من فضلك اكتب نصاً للترجمة');
+        return;
+      }
+
+      statusEl.textContent = 'Translating...';
+      translateBtn.disabled = true;
+      responseEl.style.display = 'none';
+      videosEl.innerHTML = '';
+
+      try {
+        const response = await fetch('/api/ai/predict-text', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ text: textInput })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.message || data.error || 'حدث خطأ في الترجمة');
+        }
+
+        statusEl.textContent = 'Completed';
+        responseEl.style.display = 'block';
+        responseEl.textContent = JSON.stringify(data, null, 2);
+
+        if (Array.isArray(data.videos)) {
+          data.videos.forEach(function(item) {
+            const wrapper = document.createElement('div');
+            const title = document.createElement('div');
+            title.textContent = (item.order || '') + ' ' + (item.label || item.filename || 'video');
+            const video = document.createElement('video');
+            video.controls = true;
+            video.src = item.url;
+            wrapper.appendChild(title);
+            wrapper.appendChild(video);
+            videosEl.appendChild(wrapper);
+          });
+        }
+      } catch (error) {
+        statusEl.textContent = 'Failed';
+        responseEl.style.display = 'block';
+        responseEl.textContent = JSON.stringify({ error: error.message }, null, 2);
+      } finally {
+        translateBtn.disabled = false;
+      }
+    }
 
     // === Sign Verification Tester JS ===
     let verifyHands = null;
