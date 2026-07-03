@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const multer = require("multer");
 const paymentController = require("../controllers/payment.controller");
 const { protect, adminOnly } = require("../middlewares/auth.middleware");
 const uploadScreenshot = require("../middlewares/upload.middleware");
@@ -100,10 +101,21 @@ router.get("/instructions", protect, paymentController.getPaymentInstructions);
  *       401:
  *         description: Unauthorized
  */
+const uploadSingle = uploadScreenshot.single("screenshot");
+
 router.post(
   "/upload",
   protect,
-  uploadScreenshot.single("screenshot"),
+  (req, res, next) => {
+    uploadSingle(req, res, (err) => {
+      if (err instanceof multer.MulterError) {
+        return res.status(400).json({ error: `Upload error: ${err.message}` });
+      } else if (err) {
+        return res.status(400).json({ error: err.message });
+      }
+      next();
+    });
+  },
   paymentController.uploadScreenshot
 );
 
