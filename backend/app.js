@@ -21,7 +21,10 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+const staticUploadDir = process.env.VERCEL || process.env.NODE_ENV === "production"
+  ? "/tmp"
+  : path.join(__dirname, "uploads");
+app.use("/uploads", express.static(staticUploadDir));
 
 // ✅ Critical for Vercel serverless: ensure DB is connected before every request
 app.use(async (req, res, next) => {
