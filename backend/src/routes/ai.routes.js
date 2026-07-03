@@ -309,6 +309,90 @@ router.post("/verify-sign", async (req, res) => {
 
 /**
  * @swagger
+ * /api/ai/verify-video:
+ *   post:
+ *     summary: verify sign from video upload - checks if user's sign in the video matches the expected word
+ *     tags: [AI]
+ *     parameters:
+ *       - in: query
+ *         name: expected_word
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The Arabic word expected to be signed in the video
+ *         example: شكرا
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required: [file]
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Verification result
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 correct:
+ *                   type: boolean
+ *                   example: true
+ *                 expected:
+ *                   type: string
+ *                   example: شكرا
+ *                 got:
+ *                   type: string
+ *                   example: شكرا
+ *                 confidence:
+ *                   type: number
+ *                   example: 94.5
+ *       400:
+ *         description: Missing parameters
+ *       500:
+ *         description: AI service error
+ */
+router.post("/verify-video", upload.single("file"), async (req, res) => {
+  const { expected_word } = req.query;
+  if (!expected_word) {
+    return res.status(400).json({ error: "لازم تحدد الكلمة المتوقعة في query parameter باسم expected_word" });
+  }
+  if (!req.file) {
+    return res.status(400).json({ error: "لازم ترفع ملف فيديو في حقل اسمه file" });
+  }
+
+  const targetUrl = `${AI_BASE_URL}/verify-video?expected_word=${encodeURIComponent(expected_word)}`;
+  try {
+    const form = new FormData();
+    form.append("file", req.file.buffer, {
+      filename: req.file.originalname,
+      contentType: req.file.mimetype,
+    });
+
+    const response = await axios.post(targetUrl, form, {
+      headers: form.getHeaders(),
+      timeout: 60000, // 60 seconds since video processing takes longer
+    });
+    res.json(response.data);
+  } catch (error) {
+    console.error("AI Verify-Video Error:", error.message);
+    res.status(500).json({
+      error: "AI verify-video service failed",
+      details: error.message,
+      targetUrl: targetUrl,
+      response: error.response?.data,
+    });
+  }
+});
+
+
+/**
+ * @swagger
  * /api/ai/predict-voice:
  *   post:
  *     summary: Voice Translation Model - transcribe Arabic speech audio file to text
