@@ -1,7 +1,7 @@
 const LessonProgress = require("../models/lessonProgress.model");
 const Lesson = require("../models/lesson.model");
 const Course = require("../models/course.model");
-const { checkUserSubscription } = require("../middlewares/subscription.middleware");
+const { checkUserSubscription, checkUserCourseAccess } = require("../middlewares/subscription.middleware");
 
 // ================= MARK LESSON COMPLETE =================
 exports.completeLesson = async (req, res) => {
@@ -13,9 +13,10 @@ exports.completeLesson = async (req, res) => {
     if (lesson.isPremium) {
       const isAdmin = req.user.role === "admin";
       const hasSub = await checkUserSubscription(req.user._id);
-      if (!hasSub && !isAdmin) {
+      const hasCourseAccess = await checkUserCourseAccess(req.user._id, lesson.courseId);
+      if (!hasSub && !hasCourseAccess && !isAdmin) {
         return res.status(403).json({
-          message: "هذا الدرس يتطلب اشتراكاً نشطاً",
+          message: "هذا الدرس يتطلب اشتراكاً نشطاً أو شراء الدورة",
           error: "subscription_required",
         });
       }

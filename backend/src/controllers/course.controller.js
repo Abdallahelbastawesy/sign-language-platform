@@ -20,16 +20,17 @@ exports.getCourseById = async (req, res) => {
     // Fetch lessons ordered by their position
     const rawLessons = await Lesson.find({ courseId: course._id, isActive: true }).sort({ order: 1 });
 
-    // Determine if the requesting user has a subscription
-    const { checkUserSubscription } = require("../middlewares/subscription.middleware");
+    // Determine if the requesting user has a subscription or course access
+    const { checkUserSubscription, checkUserCourseAccess } = require("../middlewares/subscription.middleware");
     const userId = req.user ? req.user._id : null;
     const hasSubscription = userId ? await checkUserSubscription(userId) : false;
+    const hasCourseAccess = userId ? await checkUserCourseAccess(userId, course._id) : false;
     const isAdmin = req.user && req.user.role === "admin";
 
     // Gate premium lesson video URLs for non-subscribers
     const lessons = rawLessons.map((lesson) => {
       const obj = lesson.toObject();
-      if (obj.isPremium && !hasSubscription && !isAdmin) {
+      if (obj.isPremium && !hasSubscription && !hasCourseAccess && !isAdmin) {
         obj.videoUrl = null;
         obj.locked = true;
       } else {

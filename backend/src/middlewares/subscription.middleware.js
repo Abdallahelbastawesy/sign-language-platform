@@ -1,4 +1,5 @@
 const UserSubscription = require("../models/userSubscription.model");
+const User = require("../models/user.model");
 
 /**
  * Middleware: requireSubscription
@@ -43,4 +44,15 @@ exports.checkUserSubscription = async (userId) => {
     endDate: { $gt: new Date() },
   });
   return !!sub;
+};
+
+/**
+ * Helper: checkUserCourseAccess
+ * Returns true if the user (by id) has directly purchased the course (by id).
+ */
+exports.checkUserCourseAccess = async (userId, courseId) => {
+  if (!userId || !courseId) return false;
+  const user = await User.findById(userId);
+  if (!user) return false;
+  return user.purchasedCourses.some((id) => id.toString() === courseId.toString());
 };

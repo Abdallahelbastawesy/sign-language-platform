@@ -1,0 +1,1617 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم - مراجعة عمليات الدفع اليدوية</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Tajawal:wght@300;400;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #080a0c;
+            --card-bg: rgba(17, 22, 29, 0.75);
+            --border-color: rgba(0, 240, 255, 0.12);
+            --primary: #00f0ff;
+            --primary-glow: rgba(0, 240, 255, 0.25);
+            --secondary: #bd00ff;
+            --success: #00ff66;
+            --success-glow: rgba(0, 255, 102, 0.2);
+            --danger: #ff3b30;
+            --danger-glow: rgba(255, 59, 48, 0.2);
+            --warning: #ffcc00;
+            --warning-glow: rgba(255, 204, 0, 0.2);
+            --text-color: #f3f4f6;
+            --text-muted: #9ca3af;
+            --modal-bg: rgba(10, 12, 16, 0.95);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Tajawal', 'Outfit', sans-serif;
+            transition: all 0.25s ease;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(189, 0, 255, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(0, 240, 255, 0.05) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+
+        /* --- AUTH LOGIN SCREEN --- */
+        #auth-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1;
+            padding: 20px;
+        }
+
+        .auth-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            position: relative;
+        }
+
+        .auth-card::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            border-radius: 26px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            z-index: -1;
+            opacity: 0.25;
+        }
+
+        .auth-header {
+            text-align: center;
+        }
+
+        .auth-logo {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .auth-title {
+            font-size: 1.2rem;
+            color: var(--text-color);
+            margin-bottom: 5px;
+        }
+
+        .auth-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-label {
+            font-size: 0.9rem;
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 44px 14px 16px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            color: var(--text-color);
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .form-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 10px var(--primary-glow);
+            background: rgba(255, 255, 255, 0.07);
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(0, 240, 255, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 240, 255, 0.35);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        /* --- DASHBOARD WRAPPER --- */
+        #dashboard-container {
+            display: none;
+            flex-direction: column;
+            flex-grow: 1;
+            width: 100%;
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 25px 20px;
+        }
+
+        /* Header block */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding-bottom: 15px;
+        }
+
+        .logo-section h1 {
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .logo-section p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .admin-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 6px 14px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .btn-logout {
+            background: rgba(255, 59, 48, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(255, 59, 48, 0.2);
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-logout:hover {
+            background: var(--danger);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+        /* Statistics Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stats-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 3px;
+            background: var(--border);
+        }
+
+        .stats-card.total::after { background: var(--primary); }
+        .stats-card.pending::after { background: var(--warning); }
+        .stats-card.approved::after { background: var(--success); }
+        .stats-card.rejected::after { background: var(--danger); }
+
+        .stats-info h3 {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stats-info p {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.1;
+        }
+
+        .stats-icon {
+            font-size: 2.2rem;
+            opacity: 0.85;
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .total .stats-icon { background: rgba(0, 240, 255, 0.1); color: var(--primary); }
+        .pending .stats-icon { background: rgba(255, 204, 0, 0.1); color: var(--warning); }
+        .approved .stats-icon { background: rgba(0, 255, 102, 0.1); color: var(--success); }
+        .rejected .stats-icon { background: rgba(255, 59, 48, 0.1); color: var(--danger); }
+
+        /* Filter Controls */
+        .controls-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 25px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .search-box {
+            position: relative;
+            flex-grow: 1;
+            max-width: 450px;
+            min-width: 250px;
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 46px 12px 16px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 12px;
+            color: var(--text-color);
+            font-size: 0.95rem;
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 8px var(--primary-glow);
+            background: rgba(255, 255, 255, 0.07);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-muted);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .filter-btn:hover {
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.07);
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #fff;
+            border-color: transparent;
+            box-shadow: 0 4px 15px rgba(0, 240, 255, 0.2);
+        }
+
+        /* Requests Grid Layout (Sidebar details) */
+        .workspace-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+        }
+
+        /* Table Container styling */
+        .table-container {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            overflow-x: auto;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .requests-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: right;
+            font-size: 0.95rem;
+        }
+
+        .requests-table th {
+            background: rgba(0, 240, 255, 0.03);
+            border-bottom: 1px solid rgba(0, 240, 255, 0.08);
+            padding: 18px 20px;
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .requests-table td {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            padding: 16px 20px;
+            color: var(--text-color);
+        }
+
+        .requests-table tr {
+            cursor: pointer;
+        }
+
+        .requests-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .requests-table tbody tr.active-row {
+            background: rgba(0, 240, 255, 0.04);
+        }
+
+        /* Status Badge styles */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        .badge-pending {
+            background: rgba(255, 204, 0, 0.1);
+            color: var(--warning);
+            border: 1px solid rgba(255, 204, 0, 0.2);
+            box-shadow: 0 0 10px rgba(255, 204, 0, 0.05);
+        }
+
+        .badge-approved {
+            background: rgba(0, 255, 102, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(0, 255, 102, 0.2);
+            box-shadow: 0 0 10px rgba(0, 255, 102, 0.05);
+        }
+
+        .badge-rejected {
+            background: rgba(255, 59, 48, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(255, 59, 48, 0.2);
+            box-shadow: 0 0 10px rgba(255, 59, 48, 0.05);
+        }
+
+        /* Empty state styling */
+        .empty-state {
+            padding: 60px;
+            text-align: center;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Details Drawer overlay background */
+        .drawer-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: none;
+            justify-content: flex-end;
+            z-index: 100;
+        }
+
+        .drawer-content {
+            width: 100%;
+            max-width: 550px;
+            background: var(--modal-bg);
+            border-left: 1px solid var(--border-color);
+            height: 100%;
+            overflow-y: auto;
+            box-shadow: -10px 0 40px rgba(0, 0, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(0); }
+        }
+
+        .drawer-header {
+            padding: 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .drawer-header h2 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .btn-close {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .btn-close:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+        }
+
+        .drawer-body {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            flex-grow: 1;
+        }
+
+        .info-section {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.95rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+            padding-bottom: 10px;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .info-label {
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .info-value {
+            color: #fff;
+            font-weight: bold;
+        }
+
+        /* Screenshot preview styling */
+        .screenshot-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .screenshot-container label {
+            font-size: 0.95rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .screenshot-wrapper {
+            position: relative;
+            width: 100%;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            aspect-ratio: 16/10;
+            cursor: zoom-in;
+            background: #000;
+        }
+
+        .screenshot-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .screenshot-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .screenshot-wrapper:hover .screenshot-overlay {
+            opacity: 1;
+        }
+
+        .screenshot-overlay i {
+            font-size: 1.8rem;
+            color: #fff;
+        }
+
+        /* Action bar inside drawer */
+        .action-bar {
+            padding: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            gap: 15px;
+            background: rgba(0,0,0,0.2);
+        }
+
+        .btn-action {
+            flex-grow: 1;
+            padding: 14px 0;
+            border-radius: 12px;
+            border: none;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-approve {
+            background: rgba(0, 255, 102, 0.12);
+            color: var(--success);
+            border: 1px solid rgba(0, 255, 102, 0.3);
+        }
+
+        .btn-approve:hover {
+            background: var(--success);
+            color: #000;
+            box-shadow: 0 0 15px var(--success-glow);
+            transform: translateY(-2px);
+        }
+
+        .btn-reject {
+            background: rgba(255, 59, 48, 0.12);
+            color: var(--danger);
+            border: 1px solid rgba(255, 59, 48, 0.3);
+        }
+
+        .btn-reject:hover {
+            background: var(--danger);
+            color: #fff;
+            box-shadow: 0 0 15px var(--danger-glow);
+            transform: translateY(-2px);
+        }
+
+        /* --- SCREENSHOT ZOOM MODAL --- */
+        .zoom-modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .zoom-modal-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .zoomed-image-wrapper {
+            overflow: auto;
+            max-width: 100%;
+            max-height: 80vh;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .zoomed-img {
+            max-height: 80vh;
+            width: auto;
+            transform: scale(1);
+            transform-origin: center center;
+            transition: transform 0.2s ease;
+        }
+
+        .zoom-controls {
+            position: absolute;
+            bottom: -50px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .zoom-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .zoom-btn:hover {
+            background: var(--primary);
+            color: #000;
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        .btn-close-zoom {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-close-zoom:hover {
+            background: var(--danger);
+            box-shadow: 0 0 10px var(--danger-glow);
+        }
+
+        /* --- CONFIRMATION DIALOG MODAL --- */
+        .confirm-modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 150;
+        }
+
+        .confirm-card {
+            background: var(--modal-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 30px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            animation: popUp 0.25s ease;
+        }
+
+        @keyframes popUp {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .confirm-icon {
+            font-size: 3rem;
+            margin-bottom: 8px;
+        }
+
+        .confirm-icon-approve { color: var(--success); }
+        .confirm-icon-reject { color: var(--danger); }
+
+        .confirm-card h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .confirm-card p {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .confirm-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn-confirm {
+            flex-grow: 1;
+            padding: 12px 0;
+            border-radius: 10px;
+            border: none;
+            font-weight: bold;
+            font-size: 0.95rem;
+            cursor: pointer;
+        }
+
+        .btn-confirm-yes {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #fff;
+        }
+
+        .btn-confirm-cancel {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-color);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .btn-confirm-cancel:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        /* --- TOAST NOTIFICATIONS --- */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            left: 20px; /* Aligns left for RTL view */
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 300;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: rgba(17, 22, 29, 0.9);
+            border-radius: 12px;
+            padding: 16px 20px;
+            min-width: 280px;
+            max-width: 400px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            color: #fff;
+            transform: translateX(-120%);
+            animation: toastIn 0.35s forwards;
+            pointer-events: auto;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        @keyframes toastIn {
+            to { transform: translateX(0); }
+        }
+
+        .toast.toast-success { border-color: var(--success); }
+        .toast.toast-error { border-color: var(--danger); }
+
+        .toast-icon {
+            font-size: 1.25rem;
+        }
+
+        .toast-success .toast-icon { color: var(--success); }
+        .toast-error .toast-icon { color: var(--danger); }
+
+        .toast-text {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        /* Spinner */
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.1);
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border-left-color: var(--primary);
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ================= AUTH CONTAINER ================= -->
+    <div id="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-logo">عَبّر</div>
+                <h2 class="auth-title">لوحة تحكم المشرف</h2>
+                <p class="auth-subtitle">سجل دخولك لمراجعة وتأكيد اشتراكات المستخدمين</p>
+            </div>
+            
+            <form id="login-form" onsubmit="handleLogin(event)">
+                <div class="form-group" style="margin-bottom: 18px;">
+                    <label class="form-label">البريد الإلكتروني للمشرف</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-envelope input-icon"></i>
+                        <input type="email" id="login-email" class="form-input" placeholder="admin@example.com" required>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 24px;">
+                    <label class="form-label">كلمة المرور</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-lock input-icon"></i>
+                        <input type="password" id="login-password" class="form-input" placeholder="••••••••" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="btn-login-submit" style="width: 100%;">
+                    <span>تسجيل الدخول</span>
+                    <i class="fa-solid fa-sign-in-alt"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= DASHBOARD CONTAINER ================= -->
+    <div id="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="logo-section">
+                <h1>عَبّر - لوحة تدقيق المدفوعات</h1>
+                <p>مراجعة طلبات تفعيل الكورسات والاشتراكات عبر Vodafone Cash و InstaPay</p>
+            </div>
+            <div class="user-menu">
+                <span class="admin-name" id="admin-name-display">المشرف</span>
+                <button class="btn-logout" onclick="handleLogout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> تسجيل الخروج</button>
+            </div>
+        </header>
+
+        <!-- Stats Overview Cards -->
+        <section class="stats-grid">
+            <div class="stats-card total">
+                <div class="stats-info">
+                    <h3>إجمالي الطلبات</h3>
+                    <p id="stat-total">0</p>
+                </div>
+                <div class="stats-icon">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                </div>
+            </div>
+            <div class="stats-card pending">
+                <div class="stats-info">
+                    <h3>قيد المراجعة</h3>
+                    <p id="stat-pending">0</p>
+                </div>
+                <div class="stats-icon">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
+            </div>
+            <div class="stats-card approved">
+                <div class="stats-info">
+                    <h3>تمت الموافقة</h3>
+                    <p id="stat-approved">0</p>
+                </div>
+                <div class="stats-icon">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+            </div>
+            <div class="stats-card rejected">
+                <div class="stats-info">
+                    <h3>مرفوضة</h3>
+                    <p id="stat-rejected">0</p>
+                </div>
+                <div class="stats-icon">
+                    <i class="fa-solid fa-circle-xmark"></i>
+                </div>
+            </div>
+        </section>
+
+        <!-- Filters & Search Controls -->
+        <section class="controls-card">
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" id="search-input" class="search-input" placeholder="ابحث باسم المستخدم أو البريد الإلكتروني..." oninput="handleSearch(this.value)">
+            </div>
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-status="All" onclick="setStatusFilter('All')">الكل</button>
+                <button class="filter-btn" data-status="Pending" onclick="setStatusFilter('Pending')">قيد المراجعة</button>
+                <button class="filter-btn" data-status="Approved" onclick="setStatusFilter('Approved')">مقبولة</button>
+                <button class="filter-btn" data-status="Rejected" onclick="setStatusFilter('Rejected')">مرفوضة</button>
+            </div>
+        </section>
+
+        <!-- Workspace content (Table) -->
+        <div class="workspace-grid">
+            <div class="table-container">
+                <table class="requests-table">
+                    <thead>
+                        <tr>
+                            <th>المستخدم</th>
+                            <th>البريد الإلكتروني</th>
+                            <th>المنتج / الاشتراك</th>
+                            <th>طريقة الدفع</th>
+                            <th>تاريخ التقديم</th>
+                            <th>الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="requests-table-body">
+                        <!-- Filled by JS -->
+                    </tbody>
+                </table>
+                <div id="loading-state" style="display: none; padding: 40px; text-align: center; color: var(--text-muted);">
+                    <div class="spinner" style="margin-bottom: 10px;"></div>
+                    <p>جاري تحميل عمليات الدفع...</p>
+                </div>
+                <div id="empty-state" class="empty-state" style="display: none;">
+                    <i class="fa-solid fa-inbox"></i>
+                    <p>لا توجد طلبات دفع متوافقة مع الفلاتر المحددة</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= DETAILS SIDE DRAWER ================= -->
+    <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer(event)">
+        <div class="drawer-content" onclick="event.stopPropagation()">
+            <div class="drawer-header">
+                <h2 id="drawer-title">تفاصيل طلب الدفع</h2>
+                <button class="btn-close" onclick="hideDrawer()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="drawer-body">
+                <!-- Detailed payment parameters -->
+                <div class="info-section">
+                    <div class="info-row">
+                        <span class="info-label">اسم المستخدم</span>
+                        <span class="info-value" id="detail-username">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">البريد الإلكتروني</span>
+                        <span class="info-value" id="detail-email">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">المنتج المطلوب</span>
+                        <span class="info-value" id="detail-product" style="color: var(--primary);">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">طريقة التحويل</span>
+                        <span class="info-value" id="detail-method">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">رقم هاتف المرسل</span>
+                        <span class="info-value" id="detail-phone">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">ملاحظات المستخدم</span>
+                        <span class="info-value" id="detail-note">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">تاريخ التقديم</span>
+                        <span class="info-value" id="detail-date">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">حالة الطلب</span>
+                        <span id="detail-status">-</span>
+                    </div>
+                    <div id="review-info-section" style="display: none; border-top: 1px dashed rgba(255,255,255,0.06); padding-top: 10px; margin-top: 5px;">
+                        <div class="info-row">
+                            <span class="info-label">مراجعة بواسطة</span>
+                            <span class="info-value" id="detail-reviewer">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">تاريخ المراجعة</span>
+                            <span class="info-value" id="detail-review-date">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Screenshot container -->
+                <div class="screenshot-container">
+                    <label>إيصال التحويل (اضغط للتكبير):</label>
+                    <div class="screenshot-wrapper" onclick="openZoomModal()">
+                        <img id="detail-screenshot" class="screenshot-img" src="" alt="Receipt screenshot">
+                        <div class="screenshot-overlay">
+                            <i class="fa-solid fa-magnifying-glass-plus"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Admin review buttons -->
+            <div class="action-bar" id="drawer-actions" style="display: none;">
+                <button class="btn-action btn-approve" onclick="showConfirmDialog('approve')">
+                    <i class="fa-solid fa-check"></i>
+                    <span>قبول وتفعيل الحساب</span>
+                </button>
+                <button class="btn-action btn-reject" onclick="showConfirmDialog('reject')">
+                    <i class="fa-solid fa-xmark"></i>
+                    <span>رفض العملية</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= FULLSCREEN ZOOM MODAL ================= -->
+    <div class="zoom-modal" id="zoom-modal" onclick="closeZoomModal()">
+        <div class="zoom-modal-content" onclick="event.stopPropagation()">
+            <button class="btn-close-zoom" onclick="closeZoomModal()"><i class="fa-solid fa-xmark"></i></button>
+            <div class="zoomed-image-wrapper">
+                <img id="zoomed-img" class="zoomed-img" src="" alt="Zoomed receipt">
+            </div>
+            <div class="zoom-controls">
+                <button class="zoom-btn" onclick="adjustZoom(0.2)"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+                <button class="zoom-btn" onclick="adjustZoom(-0.2)"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+                <button class="zoom-btn" onclick="resetZoom()"><i class="fa-solid fa-arrows-rotate"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= CONFIRMATION MODAL ================= -->
+    <div class="confirm-modal" id="confirm-modal">
+        <div class="confirm-card">
+            <div id="confirm-icon-box" class="confirm-icon"></div>
+            <h3 id="confirm-modal-title">تأكيد الإجراء</h3>
+            <p id="confirm-modal-text">هل أنت متأكد من تفعيل الوصول للمستخدم؟</p>
+            <div class="confirm-buttons">
+                <button class="btn-confirm btn-confirm-yes" id="btn-confirm-submit" onclick="executeReviewAction()">تأكيد</button>
+                <button class="btn-confirm btn-confirm-cancel" onclick="hideConfirmDialog()">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= TOASTS CONTAINER ================= -->
+    <div id="toast-container"></div>
+
+    <!-- ================= JAVASCRIPT ================= -->
+    <script>
+        // Core state
+        let allPayments = [];
+        let filteredPayments = [];
+        let activeFilter = 'All';
+        let searchQuery = '';
+        let selectedPayment = null;
+        let zoomScale = 1;
+        let activeAction = null; // 'approve' or 'reject'
+
+        // Check authentication when window loads
+        window.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('adminToken');
+            const adminEmail = localStorage.getItem('adminEmail');
+            if (token && adminEmail) {
+                showDashboard(token, adminEmail);
+            } else {
+                showLogin();
+            }
+        });
+
+        // Show Auth/Login Panel
+        function showLogin() {
+            document.getElementById('auth-container').style.display = 'flex';
+            document.getElementById('dashboard-container').style.display = 'none';
+        }
+
+        // Show Dashboard Panel
+        function showDashboard(token, email) {
+            document.getElementById('auth-container').style.display = 'none';
+            document.getElementById('dashboard-container').style.display = 'flex';
+            document.getElementById('admin-name-display').innerText = email;
+            loadPayments();
+        }
+
+        // Handle Login Submission
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const btnSubmit = document.getElementById('btn-login-submit');
+
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = `<span class="spinner"></span> <span>جاري المصادقة...</span>`;
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || data.error || 'فشل تسجيل الدخول');
+                }
+
+                // Verify admin privileges
+                if (data.user.role !== 'admin') {
+                    throw new Error('غير مصرح لك بالدخول، هذه لوحة تحكم المشرفين فقط');
+                }
+
+                // Save credentials
+                localStorage.setItem('adminToken', data.token);
+                localStorage.setItem('adminEmail', data.user.email);
+
+                showToast('success', 'تم تسجيل الدخول بنجاح! مرحباً بك');
+                showDashboard(data.token, data.user.email);
+            } catch (err) {
+                showToast('error', err.message);
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = `<span>تسجيل الدخول</span> <i class="fa-solid fa-sign-in-alt"></i>`;
+            }
+        }
+
+        // Handle Logout
+        function handleLogout() {
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminEmail');
+            showToast('success', 'تم تسجيل الخروج بنجاح');
+            showLogin();
+        }
+
+        // Fetch all payment requests from Backend API
+        async function loadPayments() {
+            const token = localStorage.getItem('adminToken');
+            const tableBody = document.getElementById('requests-table-body');
+            const loadingState = document.getElementById('loading-state');
+            const emptyState = document.getElementById('empty-state');
+
+            tableBody.innerHTML = '';
+            loadingState.style.display = 'block';
+            emptyState.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/payments/admin/requests', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.status === 401 || response.status === 403) {
+                    handleLogout();
+                    throw new Error('انتهت صلاحية الجلسة، يرجى إعادة تسجيل الدخول');
+                }
+
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.message || data.error || 'فشل استرجاع المدفوعات');
+                }
+
+                allPayments = data;
+                updateStats();
+                applyFilters();
+            } catch (error) {
+                showToast('error', error.message);
+            } finally {
+                loadingState.style.display = 'none';
+            }
+        }
+
+        // Update statistics counters at the top
+        function updateStats() {
+            const total = allPayments.length;
+            const pending = allPayments.filter(p => p.status === 'Pending').length;
+            const approved = allPayments.filter(p => p.status === 'Approved').length;
+            const rejected = allPayments.filter(p => p.status === 'Rejected').length;
+
+            document.getElementById('stat-total').innerText = total;
+            document.getElementById('stat-pending').innerText = pending;
+            document.getElementById('stat-approved').innerText = approved;
+            document.getElementById('stat-rejected').innerText = rejected;
+        }
+
+        // Filter status button change
+        function setStatusFilter(status) {
+            activeFilter = status;
+            
+            // Toggle active classes on buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                if (btn.getAttribute('data-status') === status) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            applyFilters();
+        }
+
+        // Search input text change
+        function handleSearch(query) {
+            searchQuery = query.toLowerCase().trim();
+            applyFilters();
+        }
+
+        // Apply filters & search to requests
+        function applyFilters() {
+            filteredPayments = allPayments.filter(p => {
+                // Apply status filter
+                const matchesStatus = (activeFilter === 'All') || (p.status === activeFilter);
+                
+                // Apply search filter
+                const username = p.user?.name?.toLowerCase() || '';
+                const email = p.user?.email?.toLowerCase() || '';
+                const matchesSearch = username.includes(searchQuery) || email.includes(searchQuery);
+
+                return matchesStatus && matchesSearch;
+            });
+
+            renderTable();
+        }
+
+        // Render request rows inside Table
+        function renderTable() {
+            const tbody = document.getElementById('requests-table-body');
+            const emptyState = document.getElementById('empty-state');
+            tbody.innerHTML = '';
+
+            if (filteredPayments.length === 0) {
+                emptyState.style.display = 'flex';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+
+            filteredPayments.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.setAttribute('data-id', p._id);
+                if (selectedPayment && selectedPayment._id === p._id) {
+                    tr.classList.add('active-row');
+                }
+
+                tr.onclick = () => showDrawer(p);
+
+                // Determine course or plan title
+                let productTitle = '-';
+                if (p.course) {
+                    productTitle = `دورة: ${p.course.title}`;
+                } else if (p.subscriptionPlan) {
+                    productTitle = `اشتراك: ${p.subscriptionPlan.nameAr || p.subscriptionPlan.name}`;
+                }
+
+                // Render Badge
+                let badgeClass = 'badge-pending';
+                let arabicStatus = 'قيد الانتظار';
+                if (p.status === 'Approved') {
+                    badgeClass = 'badge-approved';
+                    arabicStatus = 'مقبول';
+                } else if (p.status === 'Rejected') {
+                    badgeClass = 'badge-rejected';
+                    arabicStatus = 'مرفوض';
+                }
+
+                const dateStr = new Date(p.createdAt).toLocaleDateString('ar-EG', {
+                    year: 'numeric', month: 'long', day: 'numeric'
+                });
+
+                tr.innerHTML = `
+                    <td style="font-weight: 600;">${p.user?.name || 'مستخدم غير معروف'}</td>
+                    <td style="color: var(--text-muted); font-size: 0.9rem;">${p.user?.email || '-'}</td>
+                    <td>${productTitle}</td>
+                    <td><i class="fa-solid ${p.paymentMethod === 'Vodafone Cash' ? 'fa-mobile-screen-button' : 'fa-building-columns'}" style="margin-left: 6px;"></i> ${p.paymentMethod}</td>
+                    <td style="direction: ltr; font-size: 0.9rem; text-align: right;">${dateStr}</td>
+                    <td>
+                        <span class="badge ${badgeClass}">
+                            <i class="fa-solid ${p.status === 'Pending' ? 'fa-hourglass-start' : p.status === 'Approved' ? 'fa-circle-check' : 'fa-circle-xmark'}"></i>
+                            ${arabicStatus}
+                        </span>
+                    </td>
+                `;
+
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Show detailed Side Drawer
+        function showDrawer(payment) {
+            selectedPayment = payment;
+
+            // Highlight row in table
+            document.querySelectorAll('.requests-table tbody tr').forEach(row => {
+                if (row.getAttribute('data-id') === payment._id) {
+                    row.classList.add('active-row');
+                } else {
+                    row.classList.remove('active-row');
+                }
+            });
+
+            // Populate text details
+            document.getElementById('detail-username').innerText = payment.user?.name || '-';
+            document.getElementById('detail-email').innerText = payment.user?.email || '-';
+            
+            let productTitle = '-';
+            if (payment.course) {
+                productTitle = `دورة / كورس: ${payment.course.title}`;
+            } else if (payment.subscriptionPlan) {
+                productTitle = `باقة / اشتراك: ${payment.subscriptionPlan.nameAr || payment.subscriptionPlan.name}`;
+            }
+            document.getElementById('detail-product').innerText = productTitle;
+
+            document.getElementById('detail-method').innerText = payment.paymentMethod;
+            document.getElementById('detail-phone').innerText = payment.senderPhone || 'غير مدخل';
+            document.getElementById('detail-note').innerText = payment.note || 'لا توجد ملاحظات';
+            
+            const dateStr = new Date(payment.createdAt).toLocaleString('ar-EG', {
+                year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+            });
+            document.getElementById('detail-date').innerText = dateStr;
+
+            // Status display inside drawer
+            const statusBadge = document.getElementById('detail-status');
+            statusBadge.className = 'badge';
+            if (payment.status === 'Pending') {
+                statusBadge.classList.add('badge-pending');
+                statusBadge.innerHTML = `<i class="fa-solid fa-hourglass-start"></i> قيد المراجعة`;
+                document.getElementById('drawer-actions').style.display = 'flex';
+                document.getElementById('review-info-section').style.display = 'none';
+            } else {
+                document.getElementById('drawer-actions').style.display = 'none';
+                document.getElementById('review-info-section').style.display = 'block';
+
+                if (payment.status === 'Approved') {
+                    statusBadge.classList.add('badge-approved');
+                    statusBadge.innerHTML = `<i class="fa-solid fa-circle-check"></i> مقبول`;
+                } else {
+                    statusBadge.classList.add('badge-rejected');
+                    statusBadge.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> مرفوض`;
+                }
+
+                // Populate reviewer info if loaded
+                document.getElementById('detail-reviewer').innerText = payment.reviewedBy?.email || payment.reviewedBy || 'مشرف';
+                const reviewDateStr = payment.reviewedAt ? new Date(payment.reviewedAt).toLocaleString('ar-EG', {
+                    year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                }) : '-';
+                document.getElementById('detail-review-date').innerText = reviewDateStr;
+            }
+
+            // Image receipt
+            const screenshotImg = document.getElementById('detail-screenshot');
+            screenshotImg.src = payment.screenshot;
+
+            // Open overlay drawer
+            document.getElementById('drawer-overlay').style.display = 'flex';
+        }
+
+        // Hide drawer
+        function hideDrawer() {
+            document.getElementById('drawer-overlay').style.display = 'none';
+            selectedPayment = null;
+            document.querySelectorAll('.requests-table tbody tr').forEach(row => {
+                row.classList.remove('active-row');
+            });
+        }
+
+        // Close drawer clicking on background overlay
+        function closeDrawer(e) {
+            if (e.target.id === 'drawer-overlay') {
+                hideDrawer();
+            }
+        }
+
+        // --- Screenshot ZOOM Modal ---
+        function openZoomModal() {
+            if (!selectedPayment) return;
+            const zoomedImg = document.getElementById('zoomed-img');
+            zoomedImg.src = selectedPayment.screenshot;
+            document.getElementById('zoom-modal').style.display = 'flex';
+            resetZoom();
+        }
+
+        function closeZoomModal() {
+            document.getElementById('zoom-modal').style.display = 'none';
+        }
+
+        function adjustZoom(amount) {
+            zoomScale += amount;
+            if (zoomScale < 0.5) zoomScale = 0.5;
+            if (zoomScale > 4) zoomScale = 4;
+            document.getElementById('zoomed-img').style.transform = `scale(${zoomScale})`;
+        }
+
+        function resetZoom() {
+            zoomScale = 1;
+            document.getElementById('zoomed-img').style.transform = 'scale(1)';
+        }
+
+        // --- Custom Confirmation Dialog Modal ---
+        function showConfirmDialog(action) {
+            activeAction = action;
+            const iconBox = document.getElementById('confirm-icon-box');
+            const title = document.getElementById('confirm-modal-title');
+            const text = document.getElementById('confirm-modal-text');
+
+            if (action === 'approve') {
+                iconBox.className = 'confirm-icon confirm-icon-approve';
+                iconBox.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+                title.innerText = 'تأكيد الموافقة على الدفع';
+                text.innerText = 'هل أنت متأكد من تفعيل الاشتراك/الكورس للمستخدم؟ سيتم منح المستخدم وصولاً كاملاً وفورياً.';
+            } else {
+                iconBox.className = 'confirm-icon confirm-icon-reject';
+                iconBox.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
+                title.innerText = 'رفض طلب الدفع';
+                text.innerText = 'هل أنت متأكد من رفض المعاملة وإرسال إشعار للمستخدم؟ لن يتمكن المستخدم من الوصول للمحتوى.';
+            }
+
+            document.getElementById('confirm-modal').style.display = 'flex';
+        }
+
+        function hideConfirmDialog() {
+            document.getElementById('confirm-modal').style.display = 'none';
+            activeAction = null;
+        }
+
+        // Execute Approve/Reject via APIs
+        async function executeReviewAction() {
+            if (!selectedPayment || !activeAction) return;
+
+            const token = localStorage.getItem('adminToken');
+            const btnSubmit = document.getElementById('btn-confirm-submit');
+            const originalText = btnSubmit.innerText;
+
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = `<span class="spinner"></span> <span>جاري المعالجة...</span>`;
+
+            try {
+                const response = await fetch(`/api/payments/admin/requests/${selectedPayment._id}/${activeAction}`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` 
+                    }
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.message || data.error || 'فشل إتمام العملية');
+                }
+
+                showToast('success', activeAction === 'approve' ? 'تمت الموافقة وتفعيل الحساب بنجاح' : 'تم رفض طلب الدفع بنجاح');
+                
+                hideConfirmDialog();
+                hideDrawer();
+                loadPayments(); // Reload lists
+            } catch (err) {
+                showToast('error', err.message);
+            } finally {
+                btnSubmit.disabled = false;
+                btnSubmit.innerText = originalText;
+            }
+        }
+
+        // --- Toasts notification function ---
+        function showToast(type, text) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+
+            const icon = type === 'success' ? 'fa-circle-check' : 'fa-triangle-exclamation';
+            toast.innerHTML = `
+                <i class="fa-solid ${icon} toast-icon"></i>
+                <span class="toast-text">${text}</span>
+            `;
+
+            container.appendChild(toast);
+
+            // Auto dismiss toast after 4.5 seconds
+            setTimeout(() => {
+                toast.style.animation = 'toastOut 0.4s forwards';
+                toast.addEventListener('animationend', () => {
+                    toast.remove();
+                });
+            }, 4500);
+        }
+    </script>
+    
+    <style>
+        @keyframes toastOut {
+            to { transform: translateX(-120%); opacity: 0; }
+        }
+    </style>
+</body>
+</html>

@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 const connectDB = require("./src/config/db");
 const swaggerJsdoc = require("swagger-jsdoc");
 
@@ -13,12 +14,14 @@ const courseRoutes = require("./src/routes/course.routes");
 const lessonRoutes = require("./src/routes/lesson.routes");
 const subscriptionRoutes = require("./src/routes/subscription.routes");
 const progressRoutes = require("./src/routes/progress.routes");
+const paymentRoutes = require("./src/routes/payment.routes");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ✅ Critical for Vercel serverless: ensure DB is connected before every request
 app.use(async (req, res, next) => {
@@ -40,6 +43,15 @@ const options = {
       { url: "https://sign-language-platform.vercel.app", description: "Production Server (Vercel)" },
       { url: "http://localhost:5000", description: "Local Server" }
     ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
+      },
+    },
   },
   apis: ["./backend/src/routes/*.js", "./src/routes/*.js"],
 };
@@ -598,7 +610,6 @@ app.get("/docs", (req, res) => {
 });
 
 const fs = require("fs");
-const path = require("path");
 
 app.get("/translator", (req, res) => {
   const htmlPath = path.join(__dirname, "src", "views", "translator.html");
@@ -606,6 +617,15 @@ app.get("/translator", (req, res) => {
     res.sendFile(htmlPath);
   } else {
     res.status(404).send("Translator view not found");
+  }
+});
+
+app.get("/admin/dashboard", (req, res) => {
+  const htmlPath = path.join(__dirname, "src", "views", "admin_dashboard.html");
+  if (fs.existsSync(htmlPath)) {
+    res.sendFile(htmlPath);
+  } else {
+    res.status(404).send("Admin dashboard view not found");
   }
 });
 
@@ -619,6 +639,7 @@ app.use("/api/courses", courseRoutes);
 app.use("/api/lessons", lessonRoutes);
 app.use("/api/subscriptions", subscriptionRoutes);
 app.use("/api/progress", progressRoutes);
+app.use("/api/payments", paymentRoutes);
 
 
 

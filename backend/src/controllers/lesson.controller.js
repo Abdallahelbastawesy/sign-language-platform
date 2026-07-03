@@ -1,6 +1,6 @@
 const Lesson = require("../models/lesson.model");
 const Course = require("../models/course.model");
-const { checkUserSubscription } = require("../middlewares/subscription.middleware");
+const { checkUserSubscription, checkUserCourseAccess } = require("../middlewares/subscription.middleware");
 
 // ================= GET LESSONS FOR A COURSE =================
 exports.getLessonsByCourse = async (req, res) => {
@@ -12,11 +12,12 @@ exports.getLessonsByCourse = async (req, res) => {
 
     const userId = req.user ? req.user._id : null;
     const hasSubscription = userId ? await checkUserSubscription(userId) : false;
+    const hasCourseAccess = userId ? await checkUserCourseAccess(userId, req.params.courseId) : false;
     const isAdmin = req.user && req.user.role === "admin";
 
     const lessons = rawLessons.map((lesson) => {
       const obj = lesson.toObject();
-      if (obj.isPremium && !hasSubscription && !isAdmin) {
+      if (obj.isPremium && !hasSubscription && !hasCourseAccess && !isAdmin) {
         obj.videoUrl = null;
         obj.locked = true;
       } else {
@@ -39,15 +40,16 @@ exports.getLessonById = async (req, res) => {
 
     const userId = req.user ? req.user._id : null;
     const hasSubscription = userId ? await checkUserSubscription(userId) : false;
+    const hasCourseAccess = userId ? await checkUserCourseAccess(userId, lesson.courseId) : false;
     const isAdmin = req.user && req.user.role === "admin";
 
     const obj = lesson.toObject();
-    if (obj.isPremium && !hasSubscription && !isAdmin) {
+    if (obj.isPremium && !hasSubscription && !hasCourseAccess && !isAdmin) {
       obj.videoUrl = null;
       obj.locked = true;
       return res.status(403).json({
         ...obj,
-        message: "هذا الدرس يتطلب اشتراكاً نشطاً",
+        message: "هذا الدرس يتطلب اشتراكاً نشطاً أو شراء الدورة",
         error: "subscription_required",
       });
     }
