@@ -41,7 +41,7 @@ const options = {
       { url: "http://localhost:5000", description: "Local Server" }
     ],
   },
-  apis: ["./backend/src/routes/*.js"],
+  apis: ["./backend/src/routes/*.js", "./src/routes/*.js"],
 };
 const specs = swaggerJsdoc(options);
 

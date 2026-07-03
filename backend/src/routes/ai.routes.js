@@ -397,4 +397,123 @@ router.post("/predict-voice", upload.single("file"), async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/ai/predict-text:
+ *   post:
+ *     summary: Direct Text Translation - translate Arabic text to sign language videos
+ *     tags: [AI]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [text]
+ *             properties:
+ *               text:
+ *                 type: string
+ *                 description: Arabic text to translate
+ *                 example: عامل ايه يا صاحبي
+ *     responses:
+ *       200:
+ *         description: Translation result containing matched sign videos
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 text:
+ *                   type: string
+ *                   example: عامل اي صحبي
+ *                 raw_text:
+ *                   type: string
+ *                   example: عامل ايه يا صاحبي
+ *                 stt_corrections:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                 word_confidences:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       word:
+ *                         type: string
+ *                         example: عامل
+ *                       confidence:
+ *                         type: number
+ *                         example: 1.0
+ *                 matched_text:
+ *                   type: string
+ *                   example: عامل اي صحبي
+ *                 video_count:
+ *                   type: integer
+ *                   example: 2
+ *                 videos:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       order:
+ *                         type: integer
+ *                         example: 1
+ *                       label:
+ *                         type: string
+ *                         example: عامل اي
+ *                       filename:
+ *                         type: string
+ *                         example: عامل اي.mp4
+ *                       url:
+ *                         type: string
+ *                         example: https://abdallahessam29-sign-language-ai.hf.space/videos/%D8%B9%D8%A7%D9%85%D9%84%20%D8%A7%D9%8E%D9%8A.mp4
+ *                 missing_words:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                     example: ["يا"]
+ *                 available_video_count:
+ *                   type: integer
+ *                   example: 31
+ *       400:
+ *         description: Empty or invalid text input
+ *       500:
+ *         description: AI service error
+ */
+router.post("/predict-text", async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text || !text.trim()) {
+      return res.status(400).json({
+        status: "fail",
+        message: "النص فارغ أو غير صالح",
+        text: "",
+        raw_text: "",
+        stt_corrections: [],
+        word_confidences: [],
+        matched_text: "",
+        videos: [],
+        video_count: 0,
+        missing_words: [],
+        available_video_count: 0,
+      });
+    }
+
+    const response = await axios.post(`${AI_BASE_URL}/predict-text`, req.body, {
+      timeout: 30000,
+    });
+    res.json(response.data);
+  } catch (error) {
+    console.error("AI Predict-Text Error:", error.message);
+    res.status(500).json({
+      error: "AI text translation service failed",
+      details: error.message,
+      response: error.response?.data,
+    });
+  }
+});
+
 module.exports = router;
